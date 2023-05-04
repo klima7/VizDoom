@@ -7,24 +7,29 @@
 import os
 from random import choice
 
+import numpy as np
 import vizdoom as vzd
 
+
+tickrate = 1000
+clients_count = 2
 
 game = vzd.DoomGame()
 
 # Use CIG example config or your own.
 game.load_config(os.path.join(vzd.scenarios_path, "cig.cfg"))
+game.set_ticrate(tickrate)
 
 game.set_doom_map("map01")  # Limited deathmatch.
 # game.set_doom_map("map02")  # Full deathmatch.
 
 # Host game with options that will be used in the competition.
 game.add_game_args(
-    "-host  "
+    f"-host {clients_count+1}"
     # This machine will function as a host for a multiplayer game with this many players (including this machine).
     # It will wait for other machines to connect using the -join parameter and then start the game when everyone is connected.
     "-port 5029 "  # Specifies the port (default is 5029).
-    "+viz_connect_timeout 60 "  # Specifies the time (in seconds), that the host will wait for other players (default is 60).
+    "+viz_connect_timeout 600 "  # Specifies the time (in seconds), that the host will wait for other players (default is 60).
     "-deathmatch "  # Deathmatch rules are used for the game.
     "+timelimit 10.0 "  # The game (episode) will end after this many minutes have elapsed.
     "+sv_forcerespawn 1 "  # Players will respawn automatically after they die.
@@ -47,7 +52,7 @@ game.add_game_args("+name Host +colorset 0")
 # game.set_mode(vzd.Mode.PLAYER)
 game.set_mode(vzd.Mode.ASYNC_PLAYER)
 
-# game.set_window_visible(False)
+game.set_window_visible(False)
 
 game.init()
 
@@ -57,6 +62,8 @@ actions = [
     [0, 1, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 0, 0],
 ]
+
+names = game.get_server_state().players_names
 
 # Play until the game (episode) is over.
 while not game.is_episode_finished():
@@ -74,4 +81,10 @@ while not game.is_episode_finished():
         # Use this to respawn immediately after death, new state will be available.
         game.respawn_player()
 
+frags = np.array(game.get_server_state().players_frags)
+    
 game.close()
+
+for name, frag in zip(names, frags):
+    if name and name != 'Host':
+        print(f'{name:>10} - {frag}')

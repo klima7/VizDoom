@@ -11,10 +11,14 @@ from random import choice
 import vizdoom as vzd
 
 
+player_name = 'player2'
+tickrate = 1000
+
 game = vzd.DoomGame()
 
 # Use CIG example config or your own.
 game.load_config(os.path.join(vzd.scenarios_path, "cig.cfg"))
+game.set_ticrate(tickrate)
 
 game.set_doom_map("map01")  # Limited deathmatch.
 # game.set_doom_map("map02")  # Full deathmatch.
@@ -26,7 +30,7 @@ game.add_game_args(
 
 # Name your agent and select color
 # colors: 0 - green, 1 - gray, 2 - brown, 3 - red, 4 - light gray, 5 - light brown, 6 - light red, 7 - light blue
-game.add_game_args("+name AI +colorset 0")
+game.add_game_args(f"+name {player_name} +colorset 0")
 
 # During the competition, async mode will be forced for all agents.
 # game.set_mode(Mode.PLAYER)
