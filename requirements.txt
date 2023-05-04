@@ -1,0 +1,4 @@
+pytorch
+vizdoom
+scikit-image
+opencv-python
