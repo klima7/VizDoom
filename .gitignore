@@ -1,5 +1,6 @@
 .idea/**
 **.pyc
 **/__pycache__/**
+examples/**
 res/**
 !res/.gitkeep
