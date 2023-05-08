@@ -178,10 +178,10 @@ class RewardedDoomGame(vzd.DoomGame):
             self.__log_last_rewards()
 
     def get_last_reward(self):
-        self.__reward_group.get_last_reward()
+        return self.__reward_group.get_last_reward()
         
     def get_total_reward(self):
-        self.__reward_group.get_total_reward()
+        return self.__reward_group.get_total_reward()
         
     def __log_last_rewards(self):
         rewards_dict = self.__reward_group.get_last_reward_dict()
