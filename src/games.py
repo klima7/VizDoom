@@ -1,3 +1,4 @@
+import sys
 from abc import ABC
 from random import choice
 from multiprocessing import Process
@@ -191,11 +192,14 @@ class MultiDoomGame(RewardedDoomGame):
             
     def __stop_agents_games(self):
         for process in self.processes:
-            process.kill()
+            process.terminate()
             process.join()
         self.processes = []
 
     def __agent_process(self, agent_config):
+        sys.stdout = None
+        sys.stderr = None
+        
         game = RewardedDoomGame(
             rewards_config = agent_config.rewards_config,
             log = agent_config.log_rewards
