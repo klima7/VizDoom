@@ -170,18 +170,26 @@ class RewardedDoomGame(vzd.DoomGame):
     def new_episode(self, *args, **kwargs):
         super().new_episode(*args, **kwargs)
         self.__reward_group.reset()
-        
-    def update_reward(self):
-        self.__reward_group.update()
-        
-        if self.__log:
-            self.__log_last_rewards()
 
     def get_last_reward(self):
         return self.__reward_group.get_last_reward()
         
     def get_total_reward(self):
         return self.__reward_group.get_total_reward()
+    
+    def make_action(self, action, skip=1):
+        super().make_action(action, skip)
+        self.__update_reward()
+        
+    def advance_action(self, tics=1, update_state=True):
+        super().advance_action(tics, update_state)
+        self.__update_reward()
+        
+    def __update_reward(self):
+        self.__reward_group.update()
+        
+        if self.__log:
+            self.__log_last_rewards()
         
     def __log_last_rewards(self):
         rewards_dict = self.__reward_group.get_last_reward_dict()
