@@ -97,12 +97,14 @@ class AgentConfig(PlayerConfig):
     def __init__(
         self,
         name,
+        agent = None,
         rewards_config = RewardsConfig(),
         window_visible = False,
         screen_resolution = vzd.ScreenResolution.RES_320X240,
         console_enabled = False
         ):
         super().__init__(name)
+        self.agent = agent
         self.rewards_config = rewards_config
         self.window_visible = window_visible
         self.screen_resolution = screen_resolution

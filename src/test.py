@@ -3,6 +3,7 @@ from random import choice
 from rewards import RewardedDoomGame
 from configs import GameConfig, RewardsConfig, AgentConfig, BotConfig
 from multi import MultiDoomGame
+from agent import RandomAgent
 
 
 actions = [
@@ -20,14 +21,27 @@ rewards_config = RewardsConfig(
 
 config = GameConfig(
     config_name='cig.cfg',
-    timeout=10
+    timeout=1000
 )
 
-host = AgentConfig('klima7', rewards_config=rewards_config, window_visible=False)
+random_agent = RandomAgent()
+
+host = AgentConfig(
+    name='klima7',
+    agent=random_agent,
+    rewards_config=rewards_config,
+    window_visible=True
+)
 
 gui_players = [
-    AgentConfig('oponent1'),
-    AgentConfig('oponent2'),
+    AgentConfig(
+        name='oponent1',
+        agent=random_agent,
+    ),
+    AgentConfig(
+        name='oponent2',
+        agent=random_agent,
+    ),
 ]
 
 bots = [
@@ -37,30 +51,15 @@ bots = [
     BotConfig(),
 ]
 
-game = MultiDoomGame(config, host, gui_players, bots, log_rewards=True)
+game = MultiDoomGame(config, host, gui_players, bots, log_rewards=False)
 game.init()
 
 for i in range(1):
     while not game.is_episode_finished():
         game.make_action(choice(actions))
-        print('step host')
-
     game.new_episode()
-    print('new_episode host')
     
 game.close()
 print('finish')
 
 
-game.init()
-
-for i in range(1):
-    while not game.is_episode_finished():
-        game.make_action(choice(actions))
-        print('step host')
-
-    game.new_episode()
-    print('new_episode host')
-    
-game.close()
-print('finish')
