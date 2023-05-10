@@ -1,4 +1,5 @@
 from random import choice
+from time import sleep
 
 from games import MultiDoomGame
 from configs import GameConfig, RewardsConfig, AgentConfig, BotConfig
@@ -14,7 +15,7 @@ rewards_config = RewardsConfig(
 
 game_config = GameConfig(
     config_name='cig.cfg',
-    timeout=1000
+    timeout=None
 )
 
 random_agent = RandomAgent()
@@ -57,6 +58,7 @@ def play(game):
     for i in range(1):
         while not game.is_episode_finished():
             game.make_action(choice(actions))
+            sleep(1/60)
         game.new_episode()
         
     game.close()
