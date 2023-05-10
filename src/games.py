@@ -175,6 +175,7 @@ class MultiDoomGame(RewardedDoomGame):
     def init(self):
         self.__start_agents_games()
         super().init()
+        self.__add_bots()
         
     def close(self):
         super().close()
@@ -218,3 +219,10 @@ class MultiDoomGame(RewardedDoomGame):
         self.game_config.setup_game(game)
         agent_config.setup_game(game)
         game.add_game_args('-join 127.0.0.1')
+
+    def __add_bots(self):
+        for bot_config in self.bot_configs:
+            if bot_config.name:
+                self.send_game_command(f'addbot {bot_config.name}')
+            else:
+                self.send_game_command('addbot')

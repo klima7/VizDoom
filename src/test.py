@@ -5,12 +5,6 @@ from configs import GameConfig, RewardsConfig, AgentConfig, BotConfig
 from agent import RandomAgent
 
 
-actions = [
-        [1, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0, 0, 0, 0],
-]
-
 rewards_config = RewardsConfig(
     damage_reward=1,
     damage_penalty=1,
@@ -18,14 +12,14 @@ rewards_config = RewardsConfig(
     single_death_penalty=200
 )
 
-config = GameConfig(
+game_config = GameConfig(
     config_name='cig.cfg',
     timeout=1000
 )
 
 random_agent = RandomAgent()
 
-host = AgentConfig(
+host_config = AgentConfig(
     name='klima7',
     agent=random_agent,
     rewards_config=rewards_config,
@@ -43,20 +37,32 @@ agent_configs = [
     ),
 ]
 
-bots = [
+bots_configs = [
     BotConfig(),
     BotConfig(),
     BotConfig(),
     BotConfig(),
 ]
 
-game = MultiDoomGame(config, host, agent_configs, bots)
-game.init()
+game = MultiDoomGame(game_config, host_config, agent_configs, bots_configs)
 
-for i in range(1):
-    while not game.is_episode_finished():
-        game.make_action(choice(actions))
-    game.new_episode()
+
+def play(game):
+    game.init()
     
-game.close()
-print('finish')
+    actions = [
+        [1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0, 0],
+    ]
+
+    for i in range(1):
+        while not game.is_episode_finished():
+            game.make_action(choice(actions))
+        game.new_episode()
+        
+    game.close()
+    print('finish')
+
+
+play(game)
