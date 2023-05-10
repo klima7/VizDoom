@@ -2,7 +2,7 @@ from abc import ABC
 
 import vizdoom as vzd
 
-from game import RewardsConfig
+from rewards import RewardsConfig
 
 
 class PlayerConfig(ABC):

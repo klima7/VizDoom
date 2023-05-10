@@ -1,6 +1,6 @@
 from multiprocessing import Process
 from random import choice
-from game import RewardedDoomGame
+from rewards import RewardedDoomGame
 
 
 class MultiplayerDoomGame(RewardedDoomGame):

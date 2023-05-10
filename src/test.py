@@ -1,4 +1,4 @@
-from game import RewardedDoomGame, RewardsConfig
+from rewards import RewardedDoomGame, RewardsConfig
 from config import GameConfig
 from manager import MultiplayerDoomGame
 from random import choice
