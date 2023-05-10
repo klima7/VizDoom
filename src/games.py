@@ -209,8 +209,6 @@ class MultiDoomGame(RewardedDoomGame):
                 state = game.get_state()
                 action = agent_config.agent.get_action(state)
                 game.make_action(action)
-                if game.is_player_dead():
-                    game.respawn_player()
             game.new_episode()
             
     def __config_host_game(self):
