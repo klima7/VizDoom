@@ -1,16 +1,6 @@
-from multiprocessing import Process, cpu_count
+from multiprocessing import Process
 from random import choice
-from time import sleep
-
-from game import RewardedDoomGame, RewardsConfig
-from config import GameConfig
-
-
-actions = [
-        [1, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0, 0, 0, 0],
-        ]
+from game import RewardedDoomGame
 
 
 class MultiplayerDoomGame(RewardedDoomGame):
@@ -45,7 +35,10 @@ class MultiplayerDoomGame(RewardedDoomGame):
         for i in range(10):
             while not game.is_episode_finished():
                 state = game.get_state()
-                game.make_action(choice(actions))
+                game.make_action(choice([
+        [1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0, 0]]))
                 print('step', player.name)
 
                 if game.is_player_dead():
@@ -69,58 +62,3 @@ class MultiplayerDoomGame(RewardedDoomGame):
             process.kill()
             process.join()
         self.processes = []
-
-
-if __name__ == '__main__':
-    from players import AgentPlayer, BotPlayer
-    
-    rewards_config = RewardsConfig(
-        damage_reward=1,
-        damage_penalty=1,
-        death_penalty=50,
-        single_death_penalty=200
-    )
-    
-    config = GameConfig('cig.cfg', timeout=10)
-    
-    host = AgentPlayer('klima7', rewards_config=rewards_config, window_visible=False)
-    
-    gui_players = [
-        AgentPlayer('oponent1'),
-        AgentPlayer('oponent2'),
-    ]
-    
-    bots = [
-        BotPlayer(),
-        BotPlayer(),
-        BotPlayer(),
-        BotPlayer(),
-    ]
-    
-    game = MultiplayerDoomGame(config, host, gui_players, bots, log_rewards=True)
-    game.init()
-    
-    for i in range(1):
-        while not game.is_episode_finished():
-            game.make_action(choice(actions))
-            print('step host')
-
-        game.new_episode()
-        print('new_episode host')
-        
-    game.close()
-    print('finish')
-    
-    
-    game.init()
-    
-    for i in range(1):
-        while not game.is_episode_finished():
-            game.make_action(choice(actions))
-            print('step host')
-
-        game.new_episode()
-        print('new_episode host')
-        
-    game.close()
-    print('finish')
