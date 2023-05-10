@@ -1,10 +1,8 @@
-from rewards import RewardedDoomGame, RewardsConfig
-from config import GameConfig
-from manager import MultiplayerDoomGame
 from random import choice
 
-
-from players import AgentConfig, BotConfig
+from rewards import RewardedDoomGame
+from configs import GameConfig, RewardsConfig, AgentConfig, BotConfig
+from multi import MultiDoomGame
 
 
 actions = [
@@ -39,7 +37,7 @@ bots = [
     BotConfig(),
 ]
 
-game = MultiplayerDoomGame(config, host, gui_players, bots, log_rewards=True)
+game = MultiDoomGame(config, host, gui_players, bots, log_rewards=True)
 game.init()
 
 for i in range(1):

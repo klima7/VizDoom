@@ -3,7 +3,7 @@ from random import choice
 from rewards import RewardedDoomGame
 
 
-class MultiplayerDoomGame(RewardedDoomGame):
+class MultiDoomGame(RewardedDoomGame):
     
     def __init__(
         self,

@@ -1,2 +1,2 @@
-class LukAgent:
+class Agent:
     pass

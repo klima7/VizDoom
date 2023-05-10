@@ -3,7 +3,7 @@ from abc import ABC
 import vizdoom as vzd
 
 
-class VarReward(ABC):
+class _VarReward(ABC):
     
     def __init__(self, game, var_name):
         self._game = game
@@ -31,7 +31,7 @@ class VarReward(ABC):
             return float(self._game.get_game_variable(self._var_name))
 
 
-class NumVarReward(VarReward):
+class _NumVarReward(_VarReward):
     
         def __init__(self, game, name, decrease_reward, increase_reward):
             super().__init__(game, name)
@@ -55,7 +55,7 @@ class NumVarReward(VarReward):
             self._total_reward += self._last_reward
         
 
-class BoolVarReward(VarReward):
+class _BoolVarReward(_VarReward):
     
     def __init__(self, game, name, true_reward, false_reward):
         super().__init__(game, name)
@@ -71,7 +71,7 @@ class BoolVarReward(VarReward):
         self._total_reward += self._last_reward
     
     
-class VarRewardsGroup:
+class _VarRewardsGroup:
     
     def __init__(self, var_rewards):
          self.var_rewards = var_rewards    
@@ -95,76 +95,13 @@ class VarRewardsGroup:
     def get_total_reward(self):
         total_rewards = [var_reward.get_total_reward() for var_reward in self.var_rewards]
         return sum(total_rewards)
-    
-    
-class RewardsConfig:
-    
-    def __init__(
-        self,
-        live_reward = 0,
-        kill_reward = 0,
-        hit_reward = 0, 
-        damage_reward = 0,
-        health_reward = 0,
-        armor_reward = 0,
-        item_reward = 0,
-        secret_reward = 0,
-        attack_reward = 0,
-        alt_attack_reward = 0,
-        death_penalty = 0,
-        single_death_penalty = 0,
-        suicide_penalty = 0,
-        hit_penalty = 0,
-        damage_penalty = 0,
-        health_penalty = 0,
-        armor_penalty = 0,
-        attack_penalty = 0,
-        alt_attack_penalty = 0,
-    ):
-        self.live_reward = live_reward
-        self.kill_reward = kill_reward
-        self.hit_reward = hit_reward 
-        self.damage_reward = damage_reward
-        self.health_reward = health_reward
-        self.armor_reward = armor_reward
-        self.item_reward = item_reward
-        self.secret_reward = secret_reward
-        self.attack_reward = attack_reward
-        self.alt_attack_reward = alt_attack_reward
-        self.death_penalty = death_penalty
-        self.single_death_penalty = single_death_penalty
-        self.suicide_penalty = suicide_penalty
-        self.hit_penalty = hit_penalty
-        self.damage_penalty = damage_penalty
-        self.health_penalty = health_penalty
-        self.armor_penalty = armor_penalty
-        self.attack_penalty = attack_penalty
-        self.alt_attack_penalty = alt_attack_penalty
         
-    def create_rewards_group(self, game):
-        var_rewards = [
-            NumVarReward(game, vzd.GameVariable.DAMAGECOUNT, 0, self.damage_reward),
-            NumVarReward(game, vzd.GameVariable.DAMAGE_TAKEN, 0, -self.damage_penalty),
-            NumVarReward(game, vzd.GameVariable.HITCOUNT, 0, self.hit_reward),
-            NumVarReward(game, vzd.GameVariable.HITS_TAKEN, 0, -self.hit_penalty),
-            NumVarReward(game, vzd.GameVariable.FRAGCOUNT, -self.suicide_penalty, self.kill_reward),
-            NumVarReward(game, vzd.GameVariable.HEALTH, -self.health_penalty, self.health_reward),
-            NumVarReward(game, vzd.GameVariable.ARMOR, -self.armor_penalty, self.armor_reward),
-            NumVarReward(game, vzd.GameVariable.DEATHCOUNT, 0, -self.single_death_penalty),
-            NumVarReward(game, vzd.GameVariable.ITEMCOUNT, 0, self.item_reward),
-            NumVarReward(game, vzd.GameVariable.SECRETCOUNT, 0, self.secret_reward),
-            BoolVarReward(game, vzd.GameVariable.DEAD, self.live_reward, -self.death_penalty),
-            BoolVarReward(game, vzd.GameVariable.ATTACK_READY, -self.attack_penalty, self.attack_reward),
-            BoolVarReward(game, vzd.GameVariable.ALTATTACK_READY, -self.alt_attack_penalty, self.alt_attack_reward),
-        ]
-        return VarRewardsGroup(var_rewards)
-
     
 class RewardedDoomGame(vzd.DoomGame):
     
     def __init__(self, rewards_config, log=False):
         super().__init__()
-        self.__reward_group = rewards_config.create_rewards_group(self)
+        self.__reward_group = self.__create_rewards(rewards_config)
         self.__log = log
 
     def new_episode(self, *args, **kwargs):
@@ -196,3 +133,21 @@ class RewardedDoomGame(vzd.DoomGame):
         rewards_dict = { name: reward for name, reward in rewards_dict.items() if reward != 0 }
         if rewards_dict:
             print('Rewards:', rewards_dict)
+            
+    def __create_rewards(self, cfg):
+        var_rewards = [
+            _NumVarReward(self, vzd.GameVariable.DAMAGECOUNT, 0, cfg.damage_reward),
+            _NumVarReward(self, vzd.GameVariable.DAMAGE_TAKEN, 0, -cfg.damage_penalty),
+            _NumVarReward(self, vzd.GameVariable.HITCOUNT, 0, cfg.hit_reward),
+            _NumVarReward(self, vzd.GameVariable.HITS_TAKEN, 0, -cfg.hit_penalty),
+            _NumVarReward(self, vzd.GameVariable.FRAGCOUNT, -cfg.suicide_penalty, cfg.kill_reward),
+            _NumVarReward(self, vzd.GameVariable.HEALTH, -cfg.health_penalty, cfg.health_reward),
+            _NumVarReward(self, vzd.GameVariable.ARMOR, -cfg.armor_penalty, cfg.armor_reward),
+            _NumVarReward(self, vzd.GameVariable.DEATHCOUNT, 0, -cfg.single_death_penalty),
+            _NumVarReward(self, vzd.GameVariable.ITEMCOUNT, 0, cfg.item_reward),
+            _NumVarReward(self, vzd.GameVariable.SECRETCOUNT, 0, cfg.secret_reward),
+            _BoolVarReward(self, vzd.GameVariable.DEAD, cfg.live_reward, -cfg.death_penalty),
+            _BoolVarReward(self, vzd.GameVariable.ATTACK_READY, -cfg.attack_penalty, cfg.attack_reward),
+            _BoolVarReward(self, vzd.GameVariable.ALTATTACK_READY, -cfg.alt_attack_penalty, cfg.alt_attack_reward),
+        ]
+        return _VarRewardsGroup(var_rewards)
