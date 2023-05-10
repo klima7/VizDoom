@@ -1,8 +1,7 @@
 from random import choice
 
-from rewards import RewardedDoomGame
+from games import MultiDoomGame
 from configs import GameConfig, RewardsConfig, AgentConfig, BotConfig
-from multi import MultiDoomGame
 from agent import RandomAgent
 
 
@@ -61,5 +60,3 @@ for i in range(1):
     
 game.close()
 print('finish')
-
-
