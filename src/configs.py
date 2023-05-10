@@ -1,26 +1,20 @@
 import os
 from abc import ABC
+from dataclasses import dataclass
 
 import vizdoom as vzd
 
+from agent import Agent
 
+
+@dataclass(kw_only=True)
 class GameConfig:
-    
-    def __init__(
-        self,
-        config_name,
-        map = None,
-        timeout = None,
-        respawn_delay = 0,
-        ticrate = None,
-        mode = vzd.Mode.PLAYER
-        ):
-        self.config_name = config_name
-        self.map = map
-        self.timeout = timeout
-        self.respawn_delay = respawn_delay
-        self.ticrate = ticrate
-        self.mode = mode
+    config_name: str
+    map: str | None = None
+    timeout: int | None = None
+    respawn_delay: int = 0
+    ticrate: int | None = None
+    mode: vzd.Mode = vzd.Mode.PLAYER
 
     def setup_game(self, game):
         game.load_config(os.path.join(vzd.scenarios_path, self.config_name))
@@ -35,80 +29,46 @@ class GameConfig:
             game.set_ticrate(self.ticrate)
 
 
+@dataclass(kw_only=True)
 class RewardsConfig:
-    
-    def __init__(
-        self,
-        live_reward = 0,
-        kill_reward = 0,
-        hit_reward = 0, 
-        damage_reward = 0,
-        health_reward = 0,
-        armor_reward = 0,
-        item_reward = 0,
-        secret_reward = 0,
-        attack_reward = 0,
-        alt_attack_reward = 0,
-        death_penalty = 0,
-        single_death_penalty = 0,
-        suicide_penalty = 0,
-        hit_penalty = 0,
-        damage_penalty = 0,
-        health_penalty = 0,
-        armor_penalty = 0,
-        attack_penalty = 0,
-        alt_attack_penalty = 0,
-    ):
-        self.live_reward = live_reward
-        self.kill_reward = kill_reward
-        self.hit_reward = hit_reward 
-        self.damage_reward = damage_reward
-        self.health_reward = health_reward
-        self.armor_reward = armor_reward
-        self.item_reward = item_reward
-        self.secret_reward = secret_reward
-        self.attack_reward = attack_reward
-        self.alt_attack_reward = alt_attack_reward
-        self.death_penalty = death_penalty
-        self.single_death_penalty = single_death_penalty
-        self.suicide_penalty = suicide_penalty
-        self.hit_penalty = hit_penalty
-        self.damage_penalty = damage_penalty
-        self.health_penalty = health_penalty
-        self.armor_penalty = armor_penalty
-        self.attack_penalty = attack_penalty
-        self.alt_attack_penalty = alt_attack_penalty
+    live_reward: float = 0
+    kill_reward: float = 0
+    hit_reward: float = 0
+    damage_reward: float = 0
+    health_reward: float = 0
+    armor_reward: float = 0
+    item_reward: float = 0
+    secret_reward: float = 0
+    attack_reward: float = 0
+    alt_attack_reward: float = 0
+    death_penalty: float = 0
+    single_death_penalty: float = 0
+    suicide_penalty: float = 0
+    hit_penalty: float = 0
+    damage_penalty: float = 0
+    health_penalty: float = 0
+    armor_penalty: float = 0
+    attack_penalty: float = 0
+    alt_attack_penalty: float = 0
 
 
+@dataclass(kw_only=True)
 class PlayerConfig(ABC):
+    name: str | None = None
     
-    def __init__(self, name):
-        self.name = name
 
-
+@dataclass(kw_only=True)
 class BotConfig(PlayerConfig):
-    
-    def __init__(self, name=None):
-        super().__init__(name)
+    pass
 
 
+@dataclass(kw_only=True)
 class AgentConfig(PlayerConfig):
-    
-    def __init__(
-        self,
-        name,
-        agent = None,
-        rewards_config = RewardsConfig(),
-        window_visible = False,
-        screen_resolution = vzd.ScreenResolution.RES_320X240,
-        console_enabled = False
-        ):
-        super().__init__(name)
-        self.agent = agent
-        self.rewards_config = rewards_config
-        self.window_visible = window_visible
-        self.screen_resolution = screen_resolution
-        self.console_enabled = console_enabled
+    agent: Agent | None = None
+    rewards_config: RewardsConfig = RewardsConfig()
+    window_visible: bool = False
+    screen_resolution: vzd.ScreenResolution = vzd.ScreenResolution.RES_320X240
+    console_enabled: bool = False
         
     def setup_game(self, game):
         game.add_game_args(f'+name {self.name}')
