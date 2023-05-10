@@ -170,7 +170,9 @@ class MultiDoomGame(RewardedDoomGame):
         self.agent_configs = agent_configs
         self.bot_configs = bot_configs
         self.processes = []
+        
         self.__config_host_game()
+        self.host_config.agent.init(self)
         
     def init(self):
         self.__start_agents_games()
@@ -200,6 +202,7 @@ class MultiDoomGame(RewardedDoomGame):
         )
         self.__config_client_game(game, agent_config)
         game.init()
+        agent_config.agent.init(game)
         
         while True:
             while not game.is_episode_finished():

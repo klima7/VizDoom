@@ -13,7 +13,7 @@ rewards_config = RewardsConfig(
 )
 
 game_config = GameConfig(
-    config_name='cig.cfg',
+    config_name='cig2.cfg',
     timeout=1000
 )
 
@@ -23,13 +23,14 @@ host_config = AgentConfig(
     name='klima7',
     agent=random_agent,
     rewards_config=rewards_config,
-    window_visible=True
+    window_visible=False
 )
 
 agent_configs = [
     AgentConfig(
         name='oponent1',
         agent=random_agent,
+        window_visible=True
     ),
     AgentConfig(
         name='oponent2',
@@ -38,9 +39,6 @@ agent_configs = [
 ]
 
 bots_configs = [
-    BotConfig(),
-    BotConfig(),
-    BotConfig(),
     BotConfig(),
 ]
 

@@ -1,11 +1,17 @@
+import itertools as it
 from abc import ABC, abstractmethod
 from random import choice
+
+import numpy as np
 
 
 class Agent(ABC):
 
     @abstractmethod    
     def get_action(self, game_state):
+        pass
+    
+    def init(self, game):
         pass
 
     def reset(self):
@@ -14,11 +20,23 @@ class Agent(ABC):
 
 class RandomAgent(Agent):
     
-    def get_action(self, game_state):
-        actions = [
-            [1, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0, 0, 0, 0]
-        ]
-        return choice(actions)
+    def __init__(self, action_duration=40):
+        super().__init__()
+        self.action_duration = action_duration
+        
+        self.actions = None
+        self.action = None
+        self.action_tic = 0
+        
+        
+    def init(self, game):
+        n = game.get_available_buttons_size()
+        self.actions = np.zeros((n, n))
+        np.fill_diagonal(self.actions, 1)
+        
     
+    def get_action(self, game_state):
+        if self.action is None or game_state.tic > self.action_tic + self.action_duration:
+            self.action = choice(self.actions)
+            self.action_tic = game_state.tic
+        return self.action
