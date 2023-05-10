@@ -32,7 +32,7 @@ host = AgentConfig(
     window_visible=True
 )
 
-gui_players = [
+agent_configs = [
     AgentConfig(
         name='oponent1',
         agent=random_agent,
@@ -50,7 +50,7 @@ bots = [
     BotConfig(),
 ]
 
-game = MultiDoomGame(config, host, gui_players, bots)
+game = MultiDoomGame(config, host, agent_configs, bots)
 game.init()
 
 for i in range(1):

@@ -2,10 +2,9 @@
 **.pyc
 **/__pycache__/**
 
-examples/**
-
 src/_vizdoom
 src/_vizdoom.ini
+_vizdoom.ini
 
 res/**
 !res/.gitkeep
