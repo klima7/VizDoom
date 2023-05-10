@@ -13,7 +13,7 @@ rewards_config = RewardsConfig(
 )
 
 game_config = GameConfig(
-    config_name='cig2.cfg',
+    config_name='cig.cfg',
     timeout=1000
 )
 

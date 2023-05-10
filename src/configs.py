@@ -1,6 +1,7 @@
 import os
 from abc import ABC
 from dataclasses import dataclass
+from pathlib import Path
 
 import vizdoom as vzd
 
@@ -17,7 +18,7 @@ class GameConfig:
     mode: vzd.Mode = vzd.Mode.PLAYER
 
     def setup_game(self, game):
-        game.load_config(os.path.join(vzd.scenarios_path, self.config_name))
+        game.load_config(str(Path(__file__).parent.parent / 'scenarios' / self.config_name))
         game.set_mode(self.mode)
         game.add_game_args('-deathmatch')
         
