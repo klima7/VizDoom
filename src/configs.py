@@ -66,6 +66,7 @@ class BotConfig(PlayerConfig):
 class AgentConfig(PlayerConfig):
     agent: Agent | None = None
     rewards_config: RewardsConfig = RewardsConfig()
+    log_rewards: bool = False
     window_visible: bool = False
     screen_resolution: vzd.ScreenResolution = vzd.ScreenResolution.RES_320X240
     console_enabled: bool = False

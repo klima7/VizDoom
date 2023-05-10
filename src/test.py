@@ -50,7 +50,7 @@ bots = [
     BotConfig(),
 ]
 
-game = MultiDoomGame(config, host, gui_players, bots, log_rewards=False)
+game = MultiDoomGame(config, host, gui_players, bots)
 game.init()
 
 for i in range(1):

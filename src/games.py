@@ -163,9 +163,8 @@ class MultiDoomGame(RewardedDoomGame):
         host_player,
         gui_players,
         bot_players,
-        log_rewards=False
         ):
-        super().__init__(host_player.rewards_config, log_rewards)
+        super().__init__(host_player.rewards_config, log=host_player.log_rewards)
         self.game_config = game_config
         self.host_player = host_player
         self.gui_players = gui_players
@@ -197,7 +196,7 @@ class MultiDoomGame(RewardedDoomGame):
         self.processes = []
 
     def __player_client(self, player):
-        game = RewardedDoomGame(player.rewards_config)
+        game = RewardedDoomGame(player.rewards_config, log=player.log_rewards)
         self.game_config.setup_game(game)
         player.setup_game(game)
         game.add_game_args('-join 127.0.0.1')
