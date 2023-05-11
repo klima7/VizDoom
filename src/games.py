@@ -173,7 +173,6 @@ class MultiDoomGame(RewardedDoomGame):
         self.processes = []
         
         self.__config_host_game()
-        self.host_config.agent.init(self)
         
     def init(self):
         self.__start_agents_games()

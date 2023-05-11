@@ -1,4 +1,5 @@
-pytorch
 vizdoom
+pytorch
+lightning
 scikit-image
 opencv-python
