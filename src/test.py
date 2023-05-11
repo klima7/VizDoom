@@ -21,21 +21,22 @@ game_config = GameConfig(
 random_agent = RandomAgent()
 
 host_config = AgentConfig(
-    name='klima7',
+    name='AI',
     agent=random_agent,
     rewards_config=rewards_config,
-    window_visible=False
+    window_visible=True
 )
 
 agent_configs = [
     AgentConfig(
         name='oponent1',
         agent=random_agent,
-        window_visible=True
+        window_visible=False
     ),
     AgentConfig(
         name='oponent2',
         agent=random_agent,
+        window_visible=False
     ),
 ]
 
@@ -58,7 +59,7 @@ def play(game):
     for i in range(1):
         while not game.is_episode_finished():
             game.make_action(choice(actions))
-            sleep(1/60)
+            # sleep(1/60)
         game.new_episode()
         
     game.close()

@@ -53,23 +53,20 @@ class RewardsConfig:
     alt_attack_penalty: float = 0
 
 
-@dataclass(kw_only=True)
-class PlayerConfig(ABC):
+@dataclass
+class BotConfig:
     name: str | None = None
-    
-
-@dataclass(kw_only=True)
-class BotConfig(PlayerConfig):
-    pass
 
 
-@dataclass(kw_only=True)
-class AgentConfig(PlayerConfig):
+@dataclass
+class AgentConfig:
+    name: str
     agent: Agent | None = None
     rewards_config: RewardsConfig = RewardsConfig()
     log_rewards: bool = False
     window_visible: bool = False
     screen_resolution: vzd.ScreenResolution = vzd.ScreenResolution.RES_320X240
+    screen_format: vzd.ScreenFormat = vzd.ScreenFormat.GRAY8
     console_enabled: bool = False
         
     def setup_game(self, game):
@@ -77,3 +74,4 @@ class AgentConfig(PlayerConfig):
         game.set_screen_resolution(self.screen_resolution)
         game.set_window_visible(self.window_visible)
         game.set_console_enabled(self.console_enabled)
+        game.set_screen_format(self.screen_format)
