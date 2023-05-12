@@ -71,7 +71,6 @@ class DQNAgent(LightningModule, Agent):
         ):
         super().__init__()
         self.save_hyperparameters()
-        print(n_actions, self.hparams.n_actions)
         self.model = Network(self.hparams.n_actions)
         self.target_model = Network(self.hparams.n_actions)
         
@@ -98,7 +97,6 @@ class DQNAgent(LightningModule, Agent):
 
     def __get_best_action(self, state):
         state = self.__wrap_state_into_tensors(state)
-        print(state.shape)
         qvalues = self.model(state)[0]
         best_action_idx = torch.argmax(qvalues).item()
         best_action_vec = self.__get_action_vec(best_action_idx)
@@ -176,15 +174,13 @@ class DQNAgent(LightningModule, Agent):
     
     def __calculate_loss(self, batch):
         states, actions, rewards, next_states, dones = batch
+        
         states = states.float()
         rewards = rewards.float()
         next_states = next_states.float()
+        actions = torch.argmax(actions, axis=1)
         
-        tmp = actions.long()
-        state_action_values = self.target_model(states)
-        print('+++', state_action_values.shape, tmp.shape)
-        state_action_values = state_action_values.gather(1, tmp)
-        state_action_values = state_action_values.squeeze(-1)
+        state_action_values = self.target_model(states).gather(1, actions.long().unsqueeze(-1)).squeeze(-1)
 
         with torch.no_grad():
             next_state_values = self.model(next_states).max(1)[0]
@@ -192,7 +188,6 @@ class DQNAgent(LightningModule, Agent):
             next_state_values = next_state_values.detach()
 
         expected_state_action_values = next_state_values * self.hparams.gamma + rewards
-        print(state_action_values.shape, expected_state_action_values.shape)
         return nn.MSELoss()(state_action_values, expected_state_action_values)
 
 

@@ -56,7 +56,14 @@ def create_environment():
 
 env = create_environment()
 n_actions = env.get_available_buttons_size()
-agent = DQNAgent(n_actions=n_actions, epsilon=0.6, populate_steps=100)
+
+agent = DQNAgent(
+    n_actions=n_actions,
+    epsilon=0.6,
+    populate_steps=100,
+    batch_size=256
+)
+
 agent.set_train_environment(env)
 
 logger = TensorBoardLogger(
