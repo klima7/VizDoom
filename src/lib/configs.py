@@ -5,7 +5,7 @@ from pathlib import Path
 
 import vizdoom as vzd
 
-from agent import Agent
+from .agent import Agent
 
 
 @dataclass(kw_only=True)
@@ -18,7 +18,7 @@ class GameConfig:
     mode: vzd.Mode = vzd.Mode.PLAYER
 
     def setup_game(self, game):
-        game.load_config(str(Path(__file__).parent.parent / 'scenarios' / self.config_name))
+        game.load_config(str(Path(__file__).parent.parent.parent / 'scenarios' / self.config_name))
         game.set_mode(self.mode)
         game.add_game_args('-deathmatch')
         

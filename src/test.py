@@ -1,9 +1,9 @@
 from random import choice
 from time import sleep
 
-from games import MultiDoomGame
-from configs import GameConfig, RewardsConfig, AgentConfig, BotConfig
-from agent import RandomAgent
+from lib.games import MultiDoomGame
+from lib.configs import GameConfig, RewardsConfig, AgentConfig, BotConfig
+from lib.agent import RandomAgent
 
 
 rewards_config = RewardsConfig(

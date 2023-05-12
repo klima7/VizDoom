@@ -9,8 +9,8 @@ from torch.utils.data import DataLoader
 from pytorch_lightning import LightningModule
 import cv2
 
-from agent import Agent
-from replay import ReplayBuffer, ReplayDataset
+from lib.agent import Agent
+from lib.replay import ReplayBuffer, ReplayDataset
 
 import vizdoom as vzd
 import matplotlib.pyplot as plt

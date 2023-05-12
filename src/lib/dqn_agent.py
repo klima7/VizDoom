@@ -9,8 +9,8 @@ from torch.utils.data import DataLoader
 from pytorch_lightning import LightningModule
 from torchinfo import summary
 
-from agent import Agent
-from replay import ReplayBuffer, ReplayDataset
+from .agent import Agent
+from .replay import ReplayBuffer, ReplayDataset
 
 
 class PreprocessStateGameWrapper:

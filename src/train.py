@@ -1,10 +1,13 @@
-import vizdoom as vzd
-from pytorch_lightning import LightningModule, Trainer
+from pathlib import Path
 
-from games import MultiDoomGame
-from configs import GameConfig, RewardsConfig, AgentConfig, BotConfig
-from agent import RandomAgent
-from dqn_agent import DQNAgent, PreprocessStateGameWrapper
+import vizdoom as vzd
+from pytorch_lightning import Trainer
+from lightning.pytorch.loggers import TensorBoardLogger
+
+from lib.games import MultiDoomGame
+from lib.configs import GameConfig, RewardsConfig, AgentConfig, BotConfig
+from lib.agent import RandomAgent
+from lib.dqn_agent import DQNAgent, PreprocessStateGameWrapper
 
 
 def create_environment():
@@ -56,10 +59,16 @@ n_actions = env.get_available_buttons_size()
 agent = DQNAgent(n_actions=n_actions, epsilon=0.6, populate_steps=100)
 agent.set_train_environment(env)
 
+logger = TensorBoardLogger(
+    save_dir=Path(__file__).parent.parent,
+    name='logs'
+)
+
 trainer = Trainer(
     accelerator='gpu',
     max_epochs=-1,
     enable_progress_bar=True,
+    logger = logger
 )
 
 trainer.fit(agent)
