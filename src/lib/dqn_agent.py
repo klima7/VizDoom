@@ -25,8 +25,17 @@ class PreprocessStateGameWrapper:
     
     def get_state(self):
         state = self.game.get_state()
-        screen_buffer = state.screen_buffer  # 240x320
-        screen_buffer = screen_buffer[np.newaxis, ...]
+        
+        if self.game.is_episode_finished():
+            w = self.game.get_screen_width()
+            h = self.game.get_screen_height()
+            c = self.game.get_screen_channels()
+            screen_buffer = np.zeros((c, h, w)).astype(np.float32)
+        
+        else:
+            screen_buffer = state.screen_buffer  # 240x320
+            screen_buffer = screen_buffer[np.newaxis, ...]
+            
         return screen_buffer
 
 
