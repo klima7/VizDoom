@@ -3,38 +3,50 @@ from abc import ABC
 import vizdoom as vzd
 
 
-class _VarReward(ABC):
+class VarTracker(ABC):
     
-    def __init__(self, game, var_name):
-        self.positive_total = 0
-        self.negative_totall = 0
-        
+    def __init__(self, game, var):
         self._game = game
-        self._var_name = var_name
+        self._var = var
+        
         self._last_reward = 0
         self._total_reward = 0
+        
+        self._positive_count = 0
+        self._negative_count = 0
         
     def reset(self):
         self._last_reward = 0
         self._total_reward = 0
+        self._positive_count = 0
+        self._negative_count = 0
     
     def update(self):
         pass
     
     def get_name(self):
-        return self._var_name
+        return self._var
     
     def get_last_reward(self):
-            return self._last_reward
+        return self._last_reward
         
     def get_total_reward(self):
-            return self._total_reward
+        return self._total_reward
+    
+    def get_positive_count(self):
+        return self._positive_count
+    
+    def get_negative_count(self):
+        return self._negative_count
+    
+    def get_total_count(self):
+        return self._positive_count + self._negative_count
     
     def _get_variable_value(self):
-            return float(self._game.get_game_variable(self._var_name))
+        return float(self._game.get_game_variable(self._var))
 
 
-class _NumVarReward(_VarReward):
+class NumVarTracker(VarTracker):
     
         def __init__(self, game, name, decrease_reward, increase_reward):
             super().__init__(game, name)
@@ -43,7 +55,7 @@ class _NumVarReward(_VarReward):
             self.__last_value = 0
             
         def get_name(self):
-            return f'num_{self._var_name}'
+            return f'num_{self._var}'
         
         def reset(self):
             super().reset()
@@ -52,13 +64,20 @@ class _NumVarReward(_VarReward):
         def update(self):
             current_value = self._get_variable_value()
             diff = current_value - self.__last_value
+            
             multiplier = self.__increase_reward if diff > 0 else self.__decrease_reward
             self._last_reward = abs(diff) * multiplier
+            
+            if diff > 0:
+                self._positive_count += abs(diff)
+            else:
+                self._negative_count += abs(diff)
+            
             self.__last_value = current_value
             self._total_reward += self._last_reward
         
 
-class _BoolVarReward(_VarReward):
+class BoolVarTracker(VarTracker):
     
     def __init__(self, game, name, true_reward, false_reward):
         super().__init__(game, name)
@@ -66,15 +85,20 @@ class _BoolVarReward(_VarReward):
         self.__false_reward = false_reward
         
     def get_name(self):
-            return f'bool_{self._var_name}'
+            return f'bool_{self._var}'
         
     def update(self):
         value = self._get_variable_value()
         self._last_reward = self.__true_reward if value else self.__false_reward
         self._total_reward += self._last_reward
+        
+        if value:
+            self._positive_count += 1
+        else:
+            self._negative_count += 1
     
     
-class _VarRewardsGroup:
+class VarTrackersGroup:
     
     def __init__(self, var_rewards):
          self.var_rewards = var_rewards    
@@ -102,55 +126,123 @@ class _VarRewardsGroup:
     
 class RewardedDoomGame(vzd.DoomGame):
     
-    def __init__(self, rewards_config, log=False):
+    def __init__(self, config, log=False):
         super().__init__()
-        self.__reward_group = self.__create_rewards(rewards_config)
+        
+        self.__damagecount_tracker = NumVarTracker(self, vzd.GameVariable.DAMAGECOUNT, 0, config.damage_reward)
+        self.__damage_taken_tracker = NumVarTracker(self, vzd.GameVariable.DAMAGE_TAKEN, 0, -config.damage_penalty)
+        self.__hit_count_tracker = NumVarTracker(self, vzd.GameVariable.HITCOUNT, 0, config.hit_reward)
+        self.__hits_taken_tracker = NumVarTracker(self, vzd.GameVariable.HITS_TAKEN, 0, -config.hit_penalty)
+        self.__fragcount_tracker = NumVarTracker(self, vzd.GameVariable.FRAGCOUNT, -config.suicide_penalty, config.kill_reward)
+        self.__health_tracker = NumVarTracker(self, vzd.GameVariable.HEALTH, -config.health_penalty, config.health_reward)
+        self.__armor_tracker = NumVarTracker(self, vzd.GameVariable.ARMOR, -config.armor_penalty, config.armor_reward)
+        self.__deathcount_tracker = NumVarTracker(self, vzd.GameVariable.DEATHCOUNT, 0, -config.single_death_penalty)
+        self.__itemcount_tracker = NumVarTracker(self, vzd.GameVariable.ITEMCOUNT, 0, config.item_reward)
+        self.__secretcount_tracker =NumVarTracker(self, vzd.GameVariable.SECRETCOUNT, 0, config.secret_reward)
+        self.__dead_tracker = BoolVarTracker(self, vzd.GameVariable.DEAD, config.live_reward, -config.death_penalty)
+        self.__attack_ready_tracker = BoolVarTracker(self, vzd.GameVariable.ATTACK_READY, -config.attack_penalty, config.attack_reward)
+        self.__altattack_ready_tracker = BoolVarTracker(self, vzd.GameVariable.ALTATTACK_READY, -config.alt_attack_penalty, config.alt_attack_reward)
+
+        self.__trackers = VarTrackersGroup([
+            self.__damagecount_tracker,
+            self.__damage_taken_tracker,
+            self.__hit_count_tracker,
+            self.__hits_taken_tracker,
+            self.__fragcount_tracker,
+            self.__health_tracker,
+            self.__armor_tracker,
+            self.__deathcount_tracker,
+            self.__itemcount_tracker,
+            self.__secretcount_tracker,
+            self.__dead_tracker,
+            self.__attack_ready_tracker,
+            self.__altattack_ready_tracker
+        ])
+
         self.__log = log
 
     def new_episode(self, *args, **kwargs):
         super().new_episode(*args, **kwargs)
-        self.__reward_group.reset()
+        self.__trackers.reset()
 
     def get_last_reward(self):
-        return self.__reward_group.get_last_reward()
+        return self.__trackers.get_last_reward()
         
     def get_total_reward(self):
-        return self.__reward_group.get_total_reward()
+        return self.__trackers.get_total_reward()
     
     def make_action(self, action, skip=1):
         super().make_action(action, skip)
-        self.__update_reward()
+        self.__update_trackers()
         
     def advance_action(self, tics=1, update_state=True):
         super().advance_action(tics, update_state)
-        self.__update_reward()
+        self.__update_trackers()
         
-    def __update_reward(self):
-        self.__reward_group.update()
+    def get_frags_count(self):
+        return self.__fragcount_tracker.get_positive_count()
         
+    def get_suicides_count(self):
+        return self.__fragcount_tracker.get_negative_count()
+        
+    def get_deaths_count(self):
+        return self.__deathcount_tracker.get_positive_count()
+        
+    def get_hits_made_count(self):
+        return self.__hit_count_tracker.get_positive_count()
+        
+    def get_hits_taken_count(self):
+        return self.__hits_taken_tracker.get_positive_count()
+        
+    def get_items_collected_count(self):
+        return self.__itemcount_tracker.get_positive_count()
+        
+    def get_damage_make_count(self):
+        return self.__damagecount_tracker.get_positive_count()
+        
+    def get_damage_taken_count(self):
+        return self.__damage_taken_tracker.get_positive_count()
+    
+    def get_secrets_count(self):
+        return self.__secretcount_tracker.get_positive_count()
+    
+    def get_armor_gained_count(self):
+        return self.__armor_tracker.get_positive_count()
+    
+    def get_armor_lost_count(self):
+        return self.__armor_tracker.get_negative_count()
+    
+    def get_health_gained_count(self):
+        return self.__health_tracker.get_positive_count()
+    
+    def get_health_lost_count(self):
+        return self.__health_tracker.get_negative_count()
+    
+    def get_death_tics_count(self):
+        return self.__dead_tracker.get_positive_count()
+    
+    def get_life_tics_count(self):
+        return self.__dead_tracker.get_negative_count()
+    
+    def get_attack_ready_tics_count(self):
+        return self.__attack_ready_tracker.get_positive_count()
+    
+    def get_attack_not_ready_tics_count(self):
+        return self.__attack_ready_tracker.get_negative_count()
+    
+    def get_altattack_ready_tics_count(self):
+        return self.__altattack_ready_tracker.get_positive_count()
+    
+    def get_altattack_not_ready_tics_count(self):
+        return self.__altattack_ready_tracker.get_negative_count()
+        
+    def __update_trackers(self):
+        self.__trackers.update()
         if self.__log:
             self.__log_last_rewards()
         
     def __log_last_rewards(self):
-        rewards_dict = self.__reward_group.get_last_reward_dict()
+        rewards_dict = self.__trackers.get_last_reward_dict()
         rewards_dict = { name: reward for name, reward in rewards_dict.items() if reward != 0 }
         if rewards_dict:
             print('Rewards:', rewards_dict)
-            
-    def __create_rewards(self, cfg):
-        var_rewards = [
-            _NumVarReward(self, vzd.GameVariable.DAMAGECOUNT, 0, cfg.damage_reward),
-            _NumVarReward(self, vzd.GameVariable.DAMAGE_TAKEN, 0, -cfg.damage_penalty),
-            _NumVarReward(self, vzd.GameVariable.HITCOUNT, 0, cfg.hit_reward),
-            _NumVarReward(self, vzd.GameVariable.HITS_TAKEN, 0, -cfg.hit_penalty),
-            _NumVarReward(self, vzd.GameVariable.FRAGCOUNT, -cfg.suicide_penalty, cfg.kill_reward),
-            _NumVarReward(self, vzd.GameVariable.HEALTH, -cfg.health_penalty, cfg.health_reward),
-            _NumVarReward(self, vzd.GameVariable.ARMOR, -cfg.armor_penalty, cfg.armor_reward),
-            _NumVarReward(self, vzd.GameVariable.DEATHCOUNT, 0, -cfg.single_death_penalty),
-            _NumVarReward(self, vzd.GameVariable.ITEMCOUNT, 0, cfg.item_reward),
-            _NumVarReward(self, vzd.GameVariable.SECRETCOUNT, 0, cfg.secret_reward),
-            _BoolVarReward(self, vzd.GameVariable.DEAD, cfg.live_reward, -cfg.death_penalty),
-            _BoolVarReward(self, vzd.GameVariable.ATTACK_READY, -cfg.attack_penalty, cfg.attack_reward),
-            _BoolVarReward(self, vzd.GameVariable.ALTATTACK_READY, -cfg.alt_attack_penalty, cfg.alt_attack_reward),
-        ]
-        return _VarRewardsGroup(var_rewards)

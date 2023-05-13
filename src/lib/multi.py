@@ -43,12 +43,9 @@ class MultiDoomGame(RewardedDoomGame):
             process.join()
         self.processes = []
 
-    def __agent_process(self, agent_config):
-        sys.stdout = None
-        sys.stderr = None
-        
+    def __agent_process(self, agent_config):        
         game = RewardedDoomGame(
-            rewards_config = agent_config.rewards_config,
+            config = agent_config.rewards_config,
             log = agent_config.log_rewards
         )
         self.__config_client_game(game, agent_config)
