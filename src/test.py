@@ -1,7 +1,7 @@
 from random import choice
 from time import sleep
 
-from lib.games import MultiDoomGame
+from lib.reward import MultiDoomGame
 from lib.configs import GameConfig, RewardsConfig, AgentConfig, BotConfig
 from lib.agent import RandomAgent
 

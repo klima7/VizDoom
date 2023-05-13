@@ -4,7 +4,7 @@ import vizdoom as vzd
 from pytorch_lightning import Trainer
 from lightning.pytorch.loggers import TensorBoardLogger
 
-from lib.games import MultiDoomGame
+from lib.multi import MultiDoomGame
 from lib.configs import GameConfig, RewardsConfig, AgentConfig, BotConfig
 from lib.agent import RandomAgent
 from lib.dqn_agent import DQNAgent, PreprocessStateGameWrapper
