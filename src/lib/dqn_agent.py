@@ -1,5 +1,5 @@
 import random
-from typing import Any
+from multiprocessing import cpu_count
 
 import numpy as np
 import torch
@@ -84,11 +84,12 @@ class DQNAgent(LightningModule, Agent):
         self.target_model = Network(self.hparams.n_actions)
         
         self.buffer = ReplayBuffer(self.hparams.buffer_size)
+        self.dataset = ReplayDataset(self.buffer, self.hparams.batch_size)
         self.state = None
         self.env = None
         
-        self.episode_reward = 0
-        self.total_reward = 0
+        self.episode_reward = 0.0
+        self.total_reward = 0.0
     
     def set_train_environment(self, env):
         self.env = env
@@ -113,7 +114,7 @@ class DQNAgent(LightningModule, Agent):
     
     def __wrap_state_into_tensors(self, state):
         screen_buffer = state
-        screen_buffer = torch.tensor([screen_buffer], device=self.device).float()
+        screen_buffer = torch.tensor(screen_buffer, device=self.device, dtype=float).unsqueeze(0)
         return screen_buffer
     
     def __update_weights(self):
@@ -161,6 +162,7 @@ class DQNAgent(LightningModule, Agent):
             if done:
                 self.total_reward = self.episode_reward
                 self.episode_reward = 0
+                self.dataset.end_epoch()
         
         loss = self.__calculate_loss(batch)
         
@@ -169,16 +171,21 @@ class DQNAgent(LightningModule, Agent):
             
         self.log('epsilon', self.hparams.epsilon)
         self.log('total_reward', self.total_reward)
-        self.log('buffer_size', len(self.buffer))
+        self.log('buffer_size', float(len(self.buffer)))
         self.log('loss', loss)
+        
+        return loss
         
     def configure_optimizers(self):
         optimizer = Adam(self.target_model.parameters(), lr=0.0001)
         return optimizer
     
     def train_dataloader(self):
-        dataset = ReplayDataset(self.buffer, self.hparams.batch_size)
-        dataloader = DataLoader(dataset=dataset, batch_size=self.hparams.batch_size)
+        dataloader = DataLoader(
+            dataset=self.dataset,
+            batch_size=self.hparams.batch_size,
+            num_workers=cpu_count()
+        )
         return dataloader
     
     def __calculate_loss(self, batch):

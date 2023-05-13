@@ -54,8 +54,14 @@ class ReplayDataset(IterableDataset):
     def __init__(self, replay, batch_size):
         self.replay = replay
         self.batch_size = batch_size
+        self.__end_epoch = False
         
     def __iter__(self):
-        states, actions, rewards, next_states, dones = self.replay.sample(self.batch_size)
-        for data in zip(states, actions, rewards, next_states, dones):
-            yield data
+        while not self.__end_epoch:
+            states, actions, rewards, next_states, dones = self.replay.sample(self.batch_size)
+            for data in zip(states, actions, rewards, next_states, dones):
+                yield data
+        self.__end_epoch = False
+
+    def end_epoch(self):
+        self.__end_epoch = True

@@ -19,7 +19,7 @@ def create_environment():
 
     game_config = GameConfig(
         config_name='cig.cfg',
-        timeout=600
+        timeout=300
     )
 
     player_config = AgentConfig(

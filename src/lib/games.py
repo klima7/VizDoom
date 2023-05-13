@@ -9,6 +9,9 @@ import vizdoom as vzd
 class _VarReward(ABC):
     
     def __init__(self, game, var_name):
+        self.positive_total = 0
+        self.negative_totall = 0
+        
         self._game = game
         self._var_name = var_name
         self._last_reward = 0
