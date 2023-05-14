@@ -2,7 +2,7 @@ from random import choice
 from time import sleep
 
 from lib.reward import MultiDoomGame
-from lib.configs import GameConfig, RewardsConfig, AgentConfig, BotConfig
+from lib.configs import GameConfig, RewardsConfig, Player, Bot
 from lib.agent import RandomAgent
 
 
@@ -20,7 +20,7 @@ game_config = GameConfig(
 
 random_agent = RandomAgent()
 
-host_config = AgentConfig(
+host_config = Player(
     name='AI',
     agent=random_agent,
     rewards_config=rewards_config,
@@ -28,12 +28,12 @@ host_config = AgentConfig(
 )
 
 agent_configs = [
-    AgentConfig(
+    Player(
         name='oponent1',
         agent=random_agent,
         window_visible=False
     ),
-    AgentConfig(
+    Player(
         name='oponent2',
         agent=random_agent,
         window_visible=False
@@ -41,7 +41,7 @@ agent_configs = [
 ]
 
 bots_configs = [
-    BotConfig(),
+    Bot(),
 ]
 
 game = MultiDoomGame(game_config, host_config, agent_configs, bots_configs)

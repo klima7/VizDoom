@@ -1,77 +1,74 @@
 import sys
+from dataclasses import dataclass
 from multiprocessing import Process
 
-from .reward import RewardedDoomGame
+import vizdoom as vzd
+
+from .agent import Agent
 
 
-class MultiDoomGame(RewardedDoomGame):
+@dataclass
+class Bot:
+    name: str | None = None
+
+
+@dataclass
+class Player:
+    agent: Agent | None = None
+    game: vzd.DoomGame = None
+
+
+class MultiplayerDoomWrapper:
     
-    def __init__(
-        self,
-        game_config,
-        host_config,
-        agent_configs,
-        bot_configs,
-        ):
-        super().__init__(host_config.rewards_config, log=host_config.log_rewards)
-        self.game_config = game_config
-        self.host_config = host_config
-        self.agent_configs = agent_configs
-        self.bot_configs = bot_configs
-        self.processes = []
+    def __init__(self, game, players, bots):
+        self.players = players
+        self.bots = bots
         
-        self.__config_host_game()
+        self.players_processes = []
+        self.game = game
+        self.game.add_game_args(f'-host {len(players)+1}')
+        
+    def __getattr__(self, attr):
+        return getattr(self.game, attr)
         
     def init(self):
         self.__start_agents_games()
-        super().init()
+        self.game.init()
         self.__add_bots()
         
     def close(self):
-        super().close()
+        self.game.close()
         self.__stop_agents_games()
         
     def __start_agents_games(self):
-        for agent_config in self.agent_configs:
-            process = Process(target=self.__agent_process, args=(agent_config,))
+        for player in self.players:
+            process = Process(target=self.__agent_process, args=(player,))
             process.start()
-            self.processes.append(process)
+            self.players_processes.append(process)
             
     def __stop_agents_games(self):
-        for process in self.processes:
+        for process in self.players_processes:
             process.terminate()
             process.join()
-        self.processes = []
+        self.players_processes = []
 
-    def __agent_process(self, agent_config):        
-        game = RewardedDoomGame(
-            config = agent_config.rewards_config,
-            log = agent_config.log_rewards
-        )
-        self.__config_client_game(game, agent_config)
+    def __agent_process(self, player):
+        agent = player.agent
+        game = player.game
+        
+        game.add_game_args('-join 127.0.0.1')
         game.init()
-        agent_config.agent.init(game)
         
         while True:
             while not game.is_episode_finished():
                 state = game.get_state()
-                action = agent_config.agent.get_action(state)
+                action = agent.get_action(state)
                 game.make_action(action)
             game.new_episode()
-            
-    def __config_host_game(self):
-        self.game_config.setup_game(self)
-        self.host_config.setup_game(self)
-        self.add_game_args(f'-host {len(self.agent_configs)+1}')
-
-    def __config_client_game(self, game, agent_config):
-        self.game_config.setup_game(game)
-        agent_config.setup_game(game)
-        game.add_game_args('-join 127.0.0.1')
 
     def __add_bots(self):
-        for bot_config in self.bot_configs:
-            if bot_config.name:
-                self.send_game_command(f'addbot {bot_config.name}')
+        for bot in self.bots:
+            if bot.name:
+                self.send_game_command(f'addbot {bot.name}')
             else:
                 self.send_game_command('addbot')

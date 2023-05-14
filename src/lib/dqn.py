@@ -13,7 +13,7 @@ from .agent import Agent
 from .replay import ReplayBuffer, ReplayDataset
 
 
-class PreprocessStateGameWrapper:
+class DQNPreprocessGameWrapper:
     
     def __init__(self, game):
         self.game = game
@@ -39,7 +39,7 @@ class PreprocessStateGameWrapper:
         return screen_buffer
 
 
-class Network(nn.Module):
+class DQNNetwork(nn.Module):
 
     def __init__(self, n_actions):
         super().__init__()
@@ -80,8 +80,8 @@ class DQNAgent(LightningModule, Agent):
         ):
         super().__init__()
         self.save_hyperparameters()
-        self.model = Network(self.hparams.n_actions)
-        self.target_model = Network(self.hparams.n_actions)
+        self.model = DQNNetwork(self.hparams.n_actions)
+        self.target_model = DQNNetwork(self.hparams.n_actions)
         
         self.buffer = ReplayBuffer(self.hparams.buffer_size)
         self.dataset = ReplayDataset(self.buffer, self.hparams.batch_size)
@@ -208,5 +208,5 @@ class DQNAgent(LightningModule, Agent):
 
 
 if __name__ == '__main__':
-    network = Network(10)
+    network = DQNNetwork(10)
     summary(network, input_size=(32, 1, 320, 240))

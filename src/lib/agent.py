@@ -20,19 +20,19 @@ class Agent(ABC):
 
 class RandomAgent(Agent):
     
-    def __init__(self, action_duration=40):
+    def __init__(self, n_actions, action_duration=40):
         super().__init__()
         self.action_duration = action_duration
+        self.actions = self.__create_actions(n_actions)
         
-        self.actions = None
         self.action = None
         self.action_tic = 0
         
         
-    def init(self, game):
-        n = game.get_available_buttons_size()
-        self.actions = np.zeros((n, n))
-        np.fill_diagonal(self.actions, 1)
+    def __create_actions(self, n_actions):
+        actions = np.zeros((n_actions, n_actions))
+        np.fill_diagonal(actions, 1)
+        return actions
         
     
     def get_action(self, game_state):
