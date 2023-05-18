@@ -1,5 +1,4 @@
 import random
-from multiprocessing import cpu_count
 
 import numpy as np
 import torch
@@ -15,8 +14,20 @@ from .replay import ReplayBuffer, ReplayDataset
 
 class DQNPreprocessGameWrapper:
     
-    def __init__(self, game):
+    IMPORTANT_LABELS = [
+        232,    # RocketAmmo
+        199,    # Medikit
+        188,    # DoomPlayer
+        236,    # ExplosiveBarrel
+        246,    # Rocket
+        170,    # BlueArmor
+        162,    # GreenArmor
+    ]
+    
+    def __init__(self, game, collect_labels=False):
         self.game = game
+        self.__collect_labels = collect_labels
+        self.__seen_labels = {}
         
     def __getattr__(self, attr):
         return getattr(self.game, attr)
@@ -24,17 +35,46 @@ class DQNPreprocessGameWrapper:
     def get_state(self):
         state = self.game.get_state()
         
+        if self.__collect_labels:
+            self.__update_seen_labels(state)
+        
         if self.game.is_episode_finished():
             w = self.game.get_screen_width()
             h = self.game.get_screen_height()
             c = self.game.get_screen_channels()
+            
             screen_buffer = np.zeros((c, h, w)).astype(np.float32)
+            depth_buffer = np.zeros((1, h, w)).astype(np.float32)
+            automap_buffer = np.zeros((1, h, w)).astype(np.float32)
+            labels = np.zeros((len(self.IMPORTANT_LABELS), h, w)).astype(np.float32)
         
         else:
-            screen_buffer = state.screen_buffer  # 240x320
-            screen_buffer = screen_buffer[np.newaxis, ...]
-            
-        return screen_buffer
+            screen_buffer = state.screen_buffer[np.newaxis, ...]  # 240x320
+            depth_buffer = state.depth_buffer[np.newaxis, ...]
+            automap_buffer = state.automap_buffer[np.newaxis, ...]
+            labels = self.__get_important_labels_map(state.labels_buffer)
+
+        screen = np.concatenate([screen_buffer, depth_buffer, labels], axis=0)
+        automap = automap_buffer
+        
+        return {
+            'screen': screen.astype(np.float32),
+            'automap': automap.astype(np.float32)
+        }
+    
+    def __get_important_labels_map(self, labels_buffer):
+        maps = []
+        for important_label in self.IMPORTANT_LABELS:
+            map = labels_buffer == important_label
+            maps.append(map)
+        return np.array(maps)
+    
+    def __update_seen_labels(self, state):
+        if state:
+            for label in state.labels:
+                if label.object_name not in self.__seen_labels:
+                    self.__seen_labels[label.object_name] = label.value
+        print(f'labels ({len(self.__seen_labels)})', self.__seen_labels)
 
 
 class DQNNetwork(nn.Module):
@@ -42,25 +82,54 @@ class DQNNetwork(nn.Module):
     def __init__(self, n_actions):
         super().__init__()
         
-        self.net = nn.Sequential(
+        self.screen_net = nn.Sequential(
+            nn.Conv2d(9, 16, kernel_size=3, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(16, 32, kernel_size=3, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(32, 32, kernel_size=3, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(32, 32, kernel_size=3, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(32, 32, kernel_size=3, stride=2),
+            nn.ReLU(),
+            nn.Flatten(),
+        )
+        
+        self.automap_net = nn.Sequential(
             nn.Conv2d(1, 16, kernel_size=3, stride=2),
             nn.ReLU(),
             nn.Conv2d(16, 32, kernel_size=3, stride=2),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=3, stride=2),
+            nn.Conv2d(32, 32, kernel_size=3, stride=2),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, stride=2),
+            nn.Conv2d(32, 32, kernel_size=3, stride=2),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, stride=2),
+            nn.Conv2d(32, 32, kernel_size=3, stride=2),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(3456, 256),
+        )
+        
+        self.neck_net = nn.Sequential(
+            nn.Linear(1728*2, 256),
             nn.ReLU(),
-            nn.Linear(256, n_actions),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, n_actions),
         )
 
-    def forward(self, x):
-        return self.net(x.float())
+    def forward(self, data):
+        screen_out = self.screen_net(data['screen'])
+        automap_out = self.automap_net(data['automap'])
+        conv_out = torch.cat([screen_out, automap_out], axis=1)
+        neck_out = self.neck_net(conv_out)
+        return neck_out
+    
+    def forward_state(self, state, device=None):
+        screens = torch.tensor(state['screen'], device=device, dtype=torch.float32).unsqueeze(0)
+        automaps = torch.tensor(state['automap'], device=device, dtype=torch.float32).unsqueeze(0)
+        data = {'screen': screens, 'automap': automaps}
+        return self.forward(data)[0]
 
 
 class DQNAgent(LightningModule, Agent):
@@ -118,16 +187,10 @@ class DQNAgent(LightningModule, Agent):
         return action_vec
 
     def __get_best_action(self, state):
-        state = self.__wrap_state_into_tensors(state)
-        qvalues = self.model(state)[0]
+        qvalues = self.model.forward_state(state, self.device)
         best_action_idx = torch.argmax(qvalues).item()
         best_action_vec = self.__get_action_vec(best_action_idx)
         return best_action_vec
-    
-    def __wrap_state_into_tensors(self, state):
-        screen_buffer = state
-        screen_buffer = torch.tensor(screen_buffer, device=self.device, dtype=float).unsqueeze(0)
-        return screen_buffer
     
     def __update_weights(self):
         self.model.load_state_dict(self.target_model.state_dict())
@@ -236,10 +299,6 @@ class DQNAgent(LightningModule, Agent):
     
     def __calculate_loss(self, batch):
         states, actions, rewards, next_states, dones = batch
-        
-        states = states.float()
-        rewards = rewards.float()
-        next_states = next_states.float()
         actions = torch.argmax(actions, axis=1)
         
         state_action_values = self.target_model(states).gather(1, actions.long().unsqueeze(-1)).squeeze(-1)

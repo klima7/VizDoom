@@ -15,7 +15,7 @@ class ReplayBuffer(object):
         return len(self.__storage)
 
     def add(self, state, action, reward, next_state, done):
-        data = (state, action, reward, next_state, done)
+        data = (state, action, np.float32(reward), next_state, done)
 
         if self.__next_idx >= len(self.__storage):
             self.__storage.append(data)
@@ -28,16 +28,16 @@ class ReplayBuffer(object):
         for i in idxes:
             data = self.__storage[i]
             obs_t, action, reward, obs_tp1, done = data
-            obses_t.append(np.array(obs_t, copy=False))
+            obses_t.append(obs_t)
             actions.append(np.array(action, copy=False))
             rewards.append(reward)
-            obses_tp1.append(np.array(obs_tp1, copy=False))
+            obses_tp1.append(obs_tp1)
             dones.append(done)
         return (
-            np.array(obses_t),
+            obses_t,
             np.array(actions),
             np.array(rewards),
-            np.array(obses_tp1),
+            obses_tp1,
             np.array(dones)
         )
 
