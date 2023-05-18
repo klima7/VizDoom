@@ -7,6 +7,7 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 from pytorch_lightning import LightningModule
 from torchinfo import summary
+import vizdoom as vzd
 
 from .agent import Agent
 from .replay import ReplayBuffer, ReplayDataset
@@ -24,13 +25,27 @@ class DQNPreprocessGameWrapper:
         162,    # GreenArmor
     ]
     
+    IMPORTANT_VARIABLES = {
+        vzd.GameVariable.HEALTH: slice(0, 200),
+        vzd.GameVariable.ARMOR: slice(0, 200),
+        vzd.GameVariable.DEAD: slice(0, 1),
+        vzd.GameVariable.ON_GROUND: slice(0, 1),
+        vzd.GameVariable.ATTACK_READY: slice(0, 1),
+        vzd.GameVariable.AMMO5: slice(0, 50),
+    }
+    
     def __init__(self, game, collect_labels=False):
         self.game = game
         self.__collect_labels = collect_labels
         self.__seen_labels = {}
+        self.__available_variables = None
         
     def __getattr__(self, attr):
         return getattr(self.game, attr)
+    
+    def init(self):
+        self.game.init()
+        self.__available_variables = self.game.get_available_game_variables()
     
     def get_state(self):
         state = self.game.get_state()
@@ -43,31 +58,47 @@ class DQNPreprocessGameWrapper:
             h = self.game.get_screen_height()
             c = self.game.get_screen_channels()
             
-            screen_buffer = np.zeros((c, h, w)).astype(np.float32)
-            depth_buffer = np.zeros((1, h, w)).astype(np.float32)
-            automap_buffer = np.zeros((1, h, w)).astype(np.float32)
-            labels = np.zeros((len(self.IMPORTANT_LABELS), h, w)).astype(np.float32)
+            screen = np.zeros((c+1+len(self.IMPORTANT_LABELS), h, w), dtype=np.float32)
+            automap = np.zeros((1, h, w), dtype=np.float32)
+            variables = np.zeros((len(self.IMPORTANT_VARIABLES,)), dtype=np.float32)
         
         else:
-            screen_buffer = state.screen_buffer[np.newaxis, ...]  # 240x320
-            depth_buffer = state.depth_buffer[np.newaxis, ...]
-            automap_buffer = state.automap_buffer[np.newaxis, ...]
-            labels = self.__get_important_labels_map(state.labels_buffer)
+            screen = self.__get_screen(state)
+            automap = self.__get_automap(state.automap_buffer)
+            variables = self.__get_important_variables(state.game_variables)
 
-        screen = np.concatenate([screen_buffer, depth_buffer, labels], axis=0)
-        automap = automap_buffer
-        
         return {
-            'screen': screen.astype(np.float32),
-            'automap': automap.astype(np.float32)
+            'screen': screen,
+            'automap': automap,
+            'variables': variables
         }
+        
+    def __get_screen(self, state):
+        screen_buffer = state.screen_buffer[np.newaxis, ...]  # 240x320
+        depth_buffer = state.depth_buffer[np.newaxis, ...]
+        labels = self.__get_important_labels_map(state.labels_buffer)
+        screen = np.concatenate([screen_buffer, depth_buffer, labels], axis=0).astype(np.float32)
+        return screen
+    
+    def __get_automap(self, automap_buffer):
+        return automap_buffer[np.newaxis, ...].astype(np.float32)
+    
+    def __get_important_variables(self, variables):
+        values = []
+        for variable, bounds in self.IMPORTANT_VARIABLES.items():
+            assert variable in self.__available_variables, f'Variable {variable} is not available'
+            idx = self.__available_variables.index(variable)
+            value = float(variables[idx])
+            value = (value - bounds.start) / (bounds.stop - bounds.start)
+            values.append(value)
+        return np.array(values, dtype=np.float32)
     
     def __get_important_labels_map(self, labels_buffer):
         maps = []
         for important_label in self.IMPORTANT_LABELS:
             map = labels_buffer == important_label
             maps.append(map)
-        return np.array(maps)
+        return np.array(maps, dtype=np.float32)
     
     def __update_seen_labels(self, state):
         if state:
@@ -111,7 +142,7 @@ class DQNNetwork(nn.Module):
         )
         
         self.neck_net = nn.Sequential(
-            nn.Linear(1728*2, 256),
+            nn.Linear(1728*2+6, 256),
             nn.ReLU(),
             nn.Linear(256, 128),
             nn.ReLU(),
@@ -121,14 +152,15 @@ class DQNNetwork(nn.Module):
     def forward(self, data):
         screen_out = self.screen_net(data['screen'])
         automap_out = self.automap_net(data['automap'])
-        conv_out = torch.cat([screen_out, automap_out], axis=1)
-        neck_out = self.neck_net(conv_out)
+        neck_in = torch.cat([screen_out, automap_out, data['variables']], axis=1)
+        neck_out = self.neck_net(neck_in)
         return neck_out
     
     def forward_state(self, state, device=None):
         screens = torch.tensor(state['screen'], device=device, dtype=torch.float32).unsqueeze(0)
         automaps = torch.tensor(state['automap'], device=device, dtype=torch.float32).unsqueeze(0)
-        data = {'screen': screens, 'automap': automaps}
+        variables = torch.tensor(state['variables'], device=device, dtype=torch.float32).unsqueeze(0)
+        data = {'screen': screens, 'automap': automaps, 'variables': variables}
         return self.forward(data)[0]
 
 
