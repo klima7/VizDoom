@@ -342,8 +342,3 @@ class DQNAgent(LightningModule, Agent):
 
         expected_state_action_values = next_state_values * self.hparams.gamma + rewards
         return nn.MSELoss()(state_action_values, expected_state_action_values)
-
-
-if __name__ == '__main__':
-    network = DQNNetwork(10)
-    summary(network, input_size=(32, 1, 320, 240))
