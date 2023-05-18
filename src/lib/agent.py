@@ -26,17 +26,18 @@ class RandomAgent(Agent):
         self.actions = self.__create_actions(n_actions)
         
         self.action = None
+        self.action_tic = 0      
+        
+    def reset(self):
         self.action_tic = 0
-        
-        
-    def __create_actions(self, n_actions):
-        actions = np.zeros((n_actions, n_actions))
-        np.fill_diagonal(actions, 1)
-        return actions
-        
     
     def get_action(self, game_state):
         if self.action is None or game_state.tic > self.action_tic + self.action_duration:
             self.action = choice(self.actions)
             self.action_tic = game_state.tic
         return self.action
+    
+    def __create_actions(self, n_actions):
+            actions = np.zeros((n_actions, n_actions))
+            np.fill_diagonal(actions, 1)
+            return actions

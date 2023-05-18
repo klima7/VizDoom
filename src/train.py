@@ -1,8 +1,10 @@
+import warnings
 from pathlib import Path
 
 import vizdoom as vzd
 from pytorch_lightning import Trainer
 from lightning.pytorch.loggers import TensorBoardLogger
+from pytorch_lightning.utilities.warnings import PossibleUserWarning
 
 from lib.agent import RandomAgent
 from lib.multi import Player, MultiplayerDoomWrapper, Bot
@@ -21,18 +23,15 @@ def create_agent():
     
 def create_multiplayer_game():
     player1_agent = RandomAgent(n_actions=10)
-    player1_game = create_game(name='player1', window_visible=True)
+    player1_game = create_game(name='player1', window_visible=False)
     player1 = Player(player1_agent, player1_game)
     
     player2_agent = RandomAgent(n_actions=10)
     player2_game = create_game(name='player2')
     player2 = Player(player2_agent, player2_game)
     
-    bot1 = Bot()
-    bot2 = Bot()
-    
-    players = [player1]
-    bots = [bot1, bot2]
+    players = [player1, player2]
+    bots = [Bot(), Bot(), Bot()]
     
     game = apply_game_wrappers(create_game(name='AI', window_visible=True))
     multiplayer_game = MultiplayerDoomWrapper(game, players, bots)
@@ -45,7 +44,7 @@ def create_game(name, window_visible=False):
     game.load_config(str(Path(__file__).parent.parent / 'scenarios' / 'cig.cfg'))
     game.set_mode(vzd.Mode.PLAYER)
     game.add_game_args('-deathmatch')
-    # game.set_episode_timeout(2000)
+    game.set_episode_timeout(5000)
     
     game.add_game_args(f'+name {name}')
     game.set_window_visible(window_visible)
@@ -59,9 +58,13 @@ def create_game(name, window_visible=False):
 def apply_game_wrappers(game):
     rewards = Rewards(
         kill_reward=100,
-        death_penalty=50,
+        death_penalty=100,
+        suicide_penalty=200,
         damage_reward=1,
-        damage_penalty=1
+        damage_penalty=1,
+        health_reward=1,
+        armor_reward=1,
+        attack_penalty=1
     )
     game = RewardsDoomWrapper(game, rewards)
     
@@ -84,6 +87,8 @@ def create_trainer():
     
     return trainer
 
+
+warnings.filterwarnings("ignore", ".*train_dataloader, does not have many workers.*")
 
 agent = create_agent()
 game = create_multiplayer_game()

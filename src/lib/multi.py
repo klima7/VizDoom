@@ -64,6 +64,7 @@ class MultiplayerDoomWrapper:
                 state = game.get_state()
                 action = agent.get_action(state)
                 game.make_action(action)
+            agent.reset()
             game.new_episode()
 
     def __add_bots(self):

@@ -19,8 +19,6 @@ class DQNPreprocessGameWrapper:
         self.game = game
         
     def __getattr__(self, attr):
-        if attr == 'game':
-            return self.game
         return getattr(self.game, attr)
     
     def get_state(self):
@@ -88,8 +86,22 @@ class DQNAgent(LightningModule, Agent):
         self.state = None
         self.env = None
         
-        self.episode_reward = 0.0
+        # metrics
         self.total_reward = 0.0
+        self.frags_count = 0.0
+        self.suicides_count = 0.0
+        self.deaths_count = 0.0
+        self.hits_made_count = 0.0
+        self.hits_taken_count = 0.0
+        self.items_collected_count = 0.0
+        self.damage_make_count = 0.0
+        self.damage_taken_count = 0.0
+        self.armor_gained_count = 0.0
+        self.armor_lost_count = 0.0
+        self.health_gained_count = 0.0
+        self.health_lost_count = 0.0
+        self.death_tics_count = 0.0
+        self.attack_not_ready_tics = 0.0
     
     def set_train_environment(self, env):
         self.env = env
@@ -120,7 +132,7 @@ class DQNAgent(LightningModule, Agent):
     def __update_weights(self):
         self.model.load_state_dict(self.target_model.state_dict())
     
-    def __play_step(self):
+    def __play_step(self, reset=True):
         action = self.get_action(self.state)
         self.env.make_action(action)
         reward = self.env.get_last_reward()
@@ -128,10 +140,10 @@ class DQNAgent(LightningModule, Agent):
         done = self.env.is_episode_finished()
         self.buffer.add(self.state, action, reward, next_state, done)
         self.state = next_state
-        if done:
+        if done and reset:
             self.env.new_episode()
             self.state = self.env.get_state()
-        return reward, done
+        return done
     
     def __get_action_vec(self, action_idx):
         action_vector = [0] * self.hparams.n_actions
@@ -156,25 +168,60 @@ class DQNAgent(LightningModule, Agent):
         
     def training_step(self, batch, batch_no):
         for _ in range(10):
-            reward, done = self.__play_step()
-            self.episode_reward += reward
+            done = self.__play_step(reset=False)
             
             if done:
-                self.total_reward = self.episode_reward
-                self.episode_reward = 0
                 self.dataset.end_epoch()
-        
+                self.reset()
+                self.__update_metrics()
+                self.env.new_episode()
+                self.state = self.env.get_state()
+                
         loss = self.__calculate_loss(batch)
         
         if self.global_step % self.hparams.update_weights_interval == 0:
             self.__update_weights()
             
-        self.log('epsilon', self.hparams.epsilon)
-        self.log('total_reward', self.total_reward)
-        self.log('buffer_size', float(len(self.buffer)))
-        self.log('loss', loss)
-        
+        self.__log_metrics(loss)
         return loss
+    
+    def __log_metrics(self, loss, prefix=''):
+        self.log('loss', loss)
+        self.log(prefix+'epsilon', float(self.hparams.epsilon))
+        self.log(prefix+'buffer_size', float(len(self.buffer)))
+        
+        self.log(prefix+'total_reward', float(self.total_reward))
+        self.log(prefix+'frags_count', float(self.frags_count))
+        self.log(prefix+'suicides_count', float(self.suicides_count))
+        self.log(prefix+'deaths_count', float(self.deaths_count))
+        self.log(prefix+'hits_made_count', float(self.hits_made_count))
+        self.log(prefix+'hits_taken_count', float(self.hits_taken_count))
+        self.log(prefix+'items_collected_count', float(self.items_collected_count))
+        self.log(prefix+'damage_make_count', float(self.damage_make_count))
+        self.log(prefix+'damage_taken_count', float(self.damage_taken_count))
+        self.log(prefix+'armor_gained_count', float(self.armor_gained_count))
+        self.log(prefix+'armor_lost_count', float(self.armor_lost_count))
+        self.log(prefix+'health_gained_count', float(self.health_gained_count))
+        self.log(prefix+'health_lost_count', float(self.health_lost_count))
+        self.log(prefix+'death_tics_count', float(self.death_tics_count))
+        self.log(prefix+'attack_not_ready_tics', float(self.attack_not_ready_tics))
+        
+    def __update_metrics(self):
+        self.total_reward = self.env.get_total_reward()
+        self.frags_count = self.env.get_frags_count()
+        self.suicides_count = self.env.get_suicides_count()
+        self.deaths_count = self.env.get_deaths_count()
+        self.hits_made_count = self.env.get_hits_made_count()
+        self.hits_taken_count = self.env.get_hits_taken_count()
+        self.items_collected_count = self.env.get_items_collected_count()
+        self.damage_make_count = self.env.get_damage_make_count()
+        self.damage_taken_count = self.env.get_damage_taken_count()
+        self.armor_gained_count = self.env.get_secrets_count()
+        self.armor_lost_count = self.env.get_armor_gained_count()
+        self.health_gained_count = self.env.get_armor_lost_count()
+        self.health_lost_count = self.env.get_health_gained_count()
+        self.death_tics_count = self.env.get_health_lost_count()
+        self.attack_not_ready_tics = self.env.get_death_tics_count()
         
     def configure_optimizers(self):
         optimizer = Adam(self.target_model.parameters(), lr=0.0001)
@@ -183,8 +230,7 @@ class DQNAgent(LightningModule, Agent):
     def train_dataloader(self):
         dataloader = DataLoader(
             dataset=self.dataset,
-            batch_size=self.hparams.batch_size,
-            num_workers=cpu_count()
+            batch_size=self.hparams.batch_size
         )
         return dataloader
     
