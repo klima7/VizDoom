@@ -15,14 +15,15 @@ from .replay import ReplayBuffer, ReplayDataset
 
 class DQNPreprocessGameWrapper:
     
+    # TeleportFog, Medikit, RocketAmmo, ExplosiveBarrel, DoomPlayer, Rocket, RocketSmokeTrail, DeadDoomPlayer, DeadExplosiveBarrel, GreenArmor, BlueArmor
     IMPORTANT_LABELS = [
-        232,    # RocketAmmo
-        199,    # Medikit
-        188,    # DoomPlayer
-        236,    # ExplosiveBarrel
-        246,    # Rocket
-        170,    # BlueArmor
-        162,    # GreenArmor
+        'RocketAmmo',
+        'Medikit',
+        'DoomPlayer',
+        'ExplosiveBarrel',
+        'Rocket',
+        'BlueArmor',
+        'GreenArmor',
     ]
     
     IMPORTANT_VARIABLES = {
@@ -74,14 +75,16 @@ class DQNPreprocessGameWrapper:
         }
         
     def __get_screen(self, state):
-        screen_buffer = state.screen_buffer[np.newaxis, ...]  # 240x320
-        depth_buffer = state.depth_buffer[np.newaxis, ...]
-        labels = self.__get_important_labels_map(state.labels_buffer)
+        screen_buffer = state.screen_buffer[np.newaxis, ...] / 255  # 240x320
+        depth_buffer = state.depth_buffer[np.newaxis, ...] / 255
+        labels = self.__get_important_labels_map(state.labels_buffer, state.labels)
         screen = np.concatenate([screen_buffer, depth_buffer, labels], axis=0).astype(np.float32)
         return screen
     
     def __get_automap(self, automap_buffer):
-        return automap_buffer[np.newaxis, ...].astype(np.float32)
+        automap = automap_buffer[np.newaxis, ...] / 255
+        automap = automap.astype(np.float32)
+        return automap
     
     def __get_important_variables(self, variables):
         values = []
@@ -93,10 +96,12 @@ class DQNPreprocessGameWrapper:
             values.append(value)
         return np.array(values, dtype=np.float32)
     
-    def __get_important_labels_map(self, labels_buffer):
+    def __get_important_labels_map(self, labels_buffer, labels):
         maps = []
-        for important_label in self.IMPORTANT_LABELS:
-            map = labels_buffer == important_label
+        for label_name in self.IMPORTANT_LABELS:
+            matching_label = [label for label in labels if label.object_name == label_name]
+            label_value = matching_label[0].value if matching_label else -1
+            map = labels_buffer == label_value
             maps.append(map)
         return np.array(maps, dtype=np.float32)
     
