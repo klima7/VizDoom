@@ -330,7 +330,7 @@ class DQNAgent(LightningModule, Agent):
     def train_dataloader(self):
         dataloader = DataLoader(
             dataset=self.dataset,
-            batch_size=self.hparams.batch_size
+            batch_size=32,
         )
         return dataloader
     

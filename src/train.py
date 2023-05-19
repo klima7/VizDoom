@@ -3,6 +3,7 @@ from pathlib import Path
 
 from pytorch_lightning import Trainer
 from lightning.pytorch.loggers import TensorBoardLogger
+from lightning.pytorch.profilers import SimpleProfiler, AdvancedProfiler
 
 from lib.dqn import DQNAgent
 from lib.setup import setup_multiplayer_game
@@ -21,12 +22,23 @@ logger = TensorBoardLogger(
     name='logs'
 )
 
+simple_profiler = SimpleProfiler(
+    dirpath='../logs',
+    filename='simple',
+    extended=True,
+)
+
+advanced_profiler = AdvancedProfiler(
+    dirpath='../logs',
+    filename='advanced',
+)
+
 trainer = Trainer(
-    accelerator='cpu',
+    accelerator='cuda',
     max_epochs=1,
     enable_progress_bar=True,
     logger = logger,
-    profiler="simple"
+    # profiler=advanced_profiler
 )
     
 warnings.filterwarnings("ignore", ".*train_dataloader, does not have many workers.*")

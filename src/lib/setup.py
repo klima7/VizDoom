@@ -1,14 +1,10 @@
-import warnings
 from pathlib import Path
 
 import vizdoom as vzd
-from pytorch_lightning import Trainer
-from lightning.pytorch.loggers import TensorBoardLogger
-from pytorch_lightning.utilities.warnings import PossibleUserWarning
 
 from lib.agent import RandomAgent
 from lib.multi import Player, MultiplayerDoomWrapper, Bot
-from lib.dqn import DQNAgent,  DQNPreprocessGameWrapper
+from lib.dqn import DQNPreprocessGameWrapper
 from lib.reward import RewardsDoomWrapper, Rewards
     
     
@@ -60,7 +56,7 @@ def _create_game(name, window_visible=False):
     game.set_screen_format(vzd.ScreenFormat.GRAY8)
     game.set_console_enabled(False)
     
-    game.set_episode_timeout(400)
+    game.set_episode_timeout(2000)
     return game
 
 def _apply_game_wrappers(game):
