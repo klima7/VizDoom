@@ -8,7 +8,7 @@ from lib.dqn import DQNPreprocessGameWrapper
 from lib.reward import RewardsDoomWrapper, Rewards
     
     
-def setup_multiplayer_game():
+def setup_multiplayer_game(log_rewards=False):
     player1_agent = RandomAgent(n_actions=10)
     player1_game = _create_game(name='player1', window_visible=False)
     player1 = Player(player1_agent, player1_game)
@@ -20,7 +20,7 @@ def setup_multiplayer_game():
     players = [player1, player2]
     bots = [Bot(), Bot(), Bot()]
     
-    game = _apply_game_wrappers(_create_game(name='AI', window_visible=True))
+    game = _apply_game_wrappers(_create_game(name='AI', window_visible=True), log_rewards=log_rewards)
     multiplayer_game = MultiplayerDoomWrapper(game, players, bots)
     return multiplayer_game
 
@@ -57,7 +57,7 @@ def _create_game(name, window_visible=False):
     game.set_console_enabled(False)
     return game
 
-def _apply_game_wrappers(game):
+def _apply_game_wrappers(game, log_rewards):
     rewards = Rewards(
         kill_reward=100,
         death_penalty=1,
@@ -67,8 +67,8 @@ def _apply_game_wrappers(game):
         damage_penalty=1,
         health_reward=1,
         armor_reward=1,
-        item_reward=10
+        ammo_reward=1
     )
-    game = RewardsDoomWrapper(game, rewards, log=True)
+    game = RewardsDoomWrapper(game, rewards, log=log_rewards)
     game = DQNPreprocessGameWrapper(game)
     return game

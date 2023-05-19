@@ -135,6 +135,7 @@ class Rewards:
     armor_reward: float = 0
     item_reward: float = 0
     secret_reward: float = 0
+    ammo_reward: float = 0
     death_penalty: float = 0
     single_death_penalty: float = 0
     suicide_penalty: float = 0
@@ -142,6 +143,7 @@ class Rewards:
     damage_penalty: float = 0
     health_penalty: float = 0
     armor_penalty: float = 0
+    ammo_penalty: float = 0
         
     
 class RewardsDoomWrapper:
@@ -164,6 +166,15 @@ class RewardsDoomWrapper:
         self.__dead_tracker = BoolVarTracker(self, vzd.GameVariable.DEAD, -rewards.death_penalty, rewards.life_reward)
         self.__attack_ready_tracker = BoolVarTracker(self, vzd.GameVariable.ATTACK_READY, 0, 0)
         self.__altattack_ready_tracker = BoolVarTracker(self, vzd.GameVariable.ALTATTACK_READY, 0, 0)
+        
+        ammo_variables = [vzd.GameVariable.AMMO0, vzd.GameVariable.AMMO1, vzd.GameVariable.AMMO2, 
+                          vzd.GameVariable.AMMO3, vzd.GameVariable.AMMO4, vzd.GameVariable.AMMO5,
+                          vzd.GameVariable.AMMO6, vzd.GameVariable.AMMO7, vzd.GameVariable.AMMO8,
+                          vzd.GameVariable.AMMO0]
+        self.__ammo_trackers = [
+            NumVarTracker(self, ammo_variable, rewards.ammo_penalty, rewards.ammo_reward)
+            for ammo_variable in ammo_variables
+        ]
 
         self.__trackers = VarTrackersGroup([
             self.__damagecount_tracker,
@@ -178,7 +189,8 @@ class RewardsDoomWrapper:
             self.__secretcount_tracker,
             self.__dead_tracker,
             self.__attack_ready_tracker,
-            self.__altattack_ready_tracker
+            self.__altattack_ready_tracker,
+            *self.__ammo_trackers
         ])
 
         self.__log = log

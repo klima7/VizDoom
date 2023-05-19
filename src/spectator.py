@@ -5,7 +5,7 @@ import vizdoom as vzd
 from lib.dqn import DQNPreprocessGameWrapper
 from lib.setup import setup_multiplayer_game
 
-game = setup_multiplayer_game()
+game = setup_multiplayer_game(log_rewards=True)
 game.set_mode(vzd.Mode.SPECTATOR)
 game.init()
 
@@ -19,7 +19,6 @@ while True:
         for i, label_name in enumerate(DQNPreprocessGameWrapper.IMPORTANT_LABELS):
             cv2.imshow(f'Label {label_name}', state['screen'][2+i])
         cv2.waitKey(1)
-        print(state['variables'])
 
         game.advance_action()
         
