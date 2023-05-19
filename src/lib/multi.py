@@ -21,11 +21,10 @@ class Player:
 class MultiplayerDoomWrapper:
     
     def __init__(self, game, players, bots):
-        self.players = players
-        self.bots = bots
-        
-        self.players_processes = []
         self.game = game
+        self.__players = players
+        self.__bots = bots
+        self.__players_processes = []
         self.game.add_game_args(f'-host {len(players)+1}')
         
     def __getattr__(self, attr):
@@ -41,16 +40,16 @@ class MultiplayerDoomWrapper:
         self.__stop_agents_games()
         
     def __start_agents_games(self):
-        for player in self.players:
+        for player in self.__players:
             process = Process(target=self.__agent_process, args=(player,))
             process.start()
-            self.players_processes.append(process)
+            self.__players_processes.append(process)
             
     def __stop_agents_games(self):
-        for process in self.players_processes:
+        for process in self.__players_processes:
             process.terminate()
             process.join()
-        self.players_processes = []
+        self.__players_processes = []
 
     def __agent_process(self, player):
         agent = player.agent
@@ -68,7 +67,7 @@ class MultiplayerDoomWrapper:
             game.new_episode()
 
     def __add_bots(self):
-        for bot in self.bots:
+        for bot in self.__bots:
             if bot.name:
                 self.send_game_command(f'addbot {bot.name}')
             else:
