@@ -113,41 +113,47 @@ class DQNPreprocessGameWrapper:
         print(f'labels ({len(self.__seen_labels)})', self.__seen_labels)
 
 
+class ConvNetwork(nn.Module):
+    
+    def __init__(self, channels):
+        super().__init__()
+        
+        self.net = nn.Sequential(
+            nn.Conv2d(channels[0], channels[1], kernel_size=3, stride=2),
+            nn.MaxPool2d(2),
+            nn.ReLU(),
+            
+            nn.Conv2d(channels[1], channels[2], kernel_size=3),
+            nn.MaxPool2d(2),
+            nn.ReLU(),
+            
+            nn.Conv2d(channels[2], channels[3], kernel_size=3),
+            nn.MaxPool2d(2),
+            nn.ReLU(),
+            
+            nn.Conv2d(channels[3], channels[4], kernel_size=3),
+            nn.MaxPool2d(2),
+            nn.ReLU(),
+            
+            nn.Flatten(),
+            nn.Dropout(0.5),
+        )
+        
+    def forward(self, image):
+        return self.net(image)
+
+
 class DQNNetwork(nn.Module):
 
     def __init__(self, n_actions):
         super().__init__()
         
-        self.screen_net = nn.Sequential(
-            nn.Conv2d(9, 16, kernel_size=3, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(16, 32, kernel_size=3, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(32, 32, kernel_size=3, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(32, 32, kernel_size=3, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(32, 32, kernel_size=3, stride=2),
-            nn.ReLU(),
-            nn.Flatten(),
-        )
+        self.screen_net = ConvNetwork([9, 32, 64, 128, 128])
         
-        self.automap_net = nn.Sequential(
-            nn.Conv2d(1, 16, kernel_size=3, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(16, 32, kernel_size=3, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(32, 32, kernel_size=3, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(32, 32, kernel_size=3, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(32, 32, kernel_size=3, stride=2),
-            nn.ReLU(),
-            nn.Flatten(),
-        )
+        self.automap_net = ConvNetwork([1, 8, 32, 64, 64])
         
         self.neck_net = nn.Sequential(
-            nn.Linear(1728*2+6, 256),
+            nn.Linear(384+192+6, 256),
             nn.ReLU(),
             nn.Linear(256, 128),
             nn.ReLU(),
@@ -155,9 +161,12 @@ class DQNNetwork(nn.Module):
         )
 
     def forward(self, data):
+        # summary(self.screen_net, input_data=data['screen'], col_names=['input_size', 'output_size', 'num_params', 'params_percent'])
         screen_out = self.screen_net(data['screen'])
+        # summary(self.automap_net, input_data=data['automap'], col_names=['input_size', 'output_size', 'num_params', 'params_percent'])
         automap_out = self.automap_net(data['automap'])
         neck_in = torch.cat([screen_out, automap_out, data['variables']], axis=1)
+        # summary(self.neck_net, input_data=neck_in, col_names=['input_size', 'output_size', 'num_params', 'params_percent'])
         neck_out = self.neck_net(neck_in)
         return neck_out
     
