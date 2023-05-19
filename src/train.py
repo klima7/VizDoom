@@ -14,7 +14,7 @@ agent = DQNAgent(
     n_actions=10,
     epsilon=0.6,
     populate_steps=100,
-    batch_size=256
+    batch_size=64
 )
 
 logger = TensorBoardLogger(
@@ -35,7 +35,7 @@ advanced_profiler = AdvancedProfiler(
 
 trainer = Trainer(
     accelerator='cuda',
-    max_epochs=1,
+    max_epochs=-1,
     enable_progress_bar=True,
     logger = logger,
     # profiler=advanced_profiler
