@@ -55,21 +55,20 @@ def _create_game(name, window_visible=False):
     game.set_screen_resolution(vzd.ScreenResolution.RES_160X120)
     game.set_screen_format(vzd.ScreenFormat.GRAY8)
     game.set_console_enabled(False)
-    
-    game.set_episode_timeout(2000)
     return game
 
 def _apply_game_wrappers(game):
     rewards = Rewards(
         kill_reward=100,
-        death_penalty=100,
-        suicide_penalty=200,
+        death_penalty=1,
+        single_death_penalty=100,
+        suicide_penalty=100,
         damage_reward=1,
         damage_penalty=1,
         health_reward=1,
         armor_reward=1,
-        attack_penalty=1
+        item_reward=10
     )
-    game = RewardsDoomWrapper(game, rewards)
+    game = RewardsDoomWrapper(game, rewards, log=True)
     game = DQNPreprocessGameWrapper(game)
     return game

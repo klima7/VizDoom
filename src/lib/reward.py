@@ -127,7 +127,7 @@ class VarTrackersGroup:
     
 @dataclass(kw_only=True)
 class Rewards:
-    live_reward: float = 0
+    life_reward: float = 0
     kill_reward: float = 0
     hit_reward: float = 0
     damage_reward: float = 0
@@ -161,7 +161,7 @@ class RewardsDoomWrapper:
         self.__deathcount_tracker = NumVarTracker(self, vzd.GameVariable.DEATHCOUNT, 0, -rewards.single_death_penalty)
         self.__itemcount_tracker = NumVarTracker(self, vzd.GameVariable.ITEMCOUNT, 0, rewards.item_reward)
         self.__secretcount_tracker = NumVarTracker(self, vzd.GameVariable.SECRETCOUNT, 0, rewards.secret_reward)
-        self.__dead_tracker = BoolVarTracker(self, vzd.GameVariable.DEAD, rewards.live_reward, -rewards.death_penalty)
+        self.__dead_tracker = BoolVarTracker(self, vzd.GameVariable.DEAD, -rewards.death_penalty, rewards.life_reward)
         self.__attack_ready_tracker = BoolVarTracker(self, vzd.GameVariable.ATTACK_READY, 0, 0)
         self.__altattack_ready_tracker = BoolVarTracker(self, vzd.GameVariable.ALTATTACK_READY, 0, 0)
 
