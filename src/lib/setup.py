@@ -28,10 +28,11 @@ def setup_multiplayer_game(log_rewards=False):
 def _create_game(name, window_visible=False):
     game = vzd.DoomGame()
     
-    game.load_config(str(Path(__file__).parent.parent.parent / 'scenarios' / 'cig.cfg'))
+    game.load_config(str(Path(__file__).parent.parent.parent / 'scenarios' / 'multi.cfg'))
+    game.set_doom_map('map01')
     game.set_mode(vzd.Mode.PLAYER)
     game.add_game_args('-deathmatch')
-    game.set_episode_timeout(5000)
+    game.set_episode_timeout(500)
     
     game.set_depth_buffer_enabled(True)
     game.set_labels_buffer_enabled(True)

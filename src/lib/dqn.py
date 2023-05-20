@@ -15,24 +15,15 @@ from .replay import ReplayBuffer, ReplayDataset
 
 class DQNPreprocessGameWrapper:
     
-    # TeleportFog, Medikit, RocketAmmo, ExplosiveBarrel, DoomPlayer, Rocket, RocketSmokeTrail, DeadDoomPlayer, DeadExplosiveBarrel, GreenArmor, BlueArmor
+    # BulletPuff, DoomPlayer, TeleportFog, Blood
     IMPORTANT_LABELS = [
-        'RocketAmmo',
-        'Medikit',
         'DoomPlayer',
-        'ExplosiveBarrel',
-        'Rocket',
-        'BlueArmor',
-        'GreenArmor',
+        'TeleportFog',
     ]
     
     IMPORTANT_VARIABLES = {
         vzd.GameVariable.HEALTH: slice(0, 200),
-        vzd.GameVariable.ARMOR: slice(0, 200),
-        vzd.GameVariable.DEAD: slice(0, 1),
-        vzd.GameVariable.ON_GROUND: slice(0, 1),
-        vzd.GameVariable.ATTACK_READY: slice(0, 1),
-        vzd.GameVariable.AMMO5: slice(0, 50),
+        vzd.GameVariable.AMMO4: slice(0, 50),
     }
     
     def __init__(self, game, collect_labels=False):
@@ -40,6 +31,7 @@ class DQNPreprocessGameWrapper:
         self.__collect_labels = collect_labels
         self.__seen_labels = {}
         self.__available_variables = None
+        self.__tmp = 0
         
     def __getattr__(self, attr):
         return getattr(self.game, attr)
@@ -51,7 +43,8 @@ class DQNPreprocessGameWrapper:
     def get_state(self):
         state = self.game.get_state()
         
-        if self.__collect_labels:
+        self.__tmp += 1
+        if self.__collect_labels and self.__tmp > 2000:
             self.__update_seen_labels(state)
         
         if self.game.is_episode_finished():
@@ -92,6 +85,7 @@ class DQNPreprocessGameWrapper:
             assert variable in self.__available_variables, f'Variable {variable} is not available'
             idx = self.__available_variables.index(variable)
             value = float(variables[idx])
+            value = min(max(value, bounds.start), bounds.stop)
             value = (value - bounds.start) / (bounds.stop - bounds.start)
             values.append(value)
         return np.array(values, dtype=np.float32)
@@ -148,12 +142,12 @@ class DQNNetwork(nn.Module):
     def __init__(self, n_actions):
         super().__init__()
         
-        self.screen_net = ConvNetwork([9, 32, 64, 128, 128])
+        self.screen_net = ConvNetwork([4, 32, 64, 128, 128])
         
         self.automap_net = ConvNetwork([1, 8, 32, 64, 64])
         
         self.neck_net = nn.Sequential(
-            nn.Linear(384+192+6, 256),
+            nn.Linear(384+192+2, 256),
             nn.ReLU(),
             nn.Linear(256, 128),
             nn.ReLU(),
@@ -161,6 +155,7 @@ class DQNNetwork(nn.Module):
         )
 
     def forward(self, data):
+        print(data['variables'])
         # summary(self.screen_net, input_data=data['screen'], col_names=['input_size', 'output_size', 'num_params', 'params_percent'])
         screen_out = self.screen_net(data['screen'])
         # summary(self.automap_net, input_data=data['automap'], col_names=['input_size', 'output_size', 'num_params', 'params_percent'])
@@ -268,6 +263,7 @@ class DQNAgent(LightningModule, Agent):
     def on_fit_start(self):
         super().on_fit_start()
         self.env.init()
+        self.env.set_doom_map('map01')
         self.state = self.env.get_state()
         self.__populate_buffer()
         
@@ -284,6 +280,7 @@ class DQNAgent(LightningModule, Agent):
                 self.reset()
                 self.__update_metrics()
                 self.env.new_episode()
+                self.env.set_doom_map('map01')
                 self.state = self.env.get_state()
                 
         loss = self.__calculate_loss(batch)

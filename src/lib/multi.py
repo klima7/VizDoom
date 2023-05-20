@@ -57,6 +57,7 @@ class MultiplayerDoomWrapper:
         
         game.add_game_args('-join 127.0.0.1')
         game.init()
+        game.set_doom_map('map01')
         
         while True:
             while not game.is_episode_finished():
@@ -65,6 +66,7 @@ class MultiplayerDoomWrapper:
                 game.make_action(action)
             agent.reset()
             game.new_episode()
+            game.set_doom_map('map01')
 
     def __add_bots(self):
         for bot in self.__bots:
