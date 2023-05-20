@@ -59,15 +59,15 @@ def _create_game(name, window_visible=False):
 
 def _apply_game_wrappers(game, log_rewards):
     rewards = Rewards(
-        kill_reward=100,
+        kill_reward=50,
         death_penalty=1,
-        single_death_penalty=100,
-        suicide_penalty=100,
+        single_death_penalty=50,
+        suicide_penalty=50,
         damage_reward=1,
         damage_penalty=1,
-        health_reward=1,
-        armor_reward=1,
-        ammo_reward=1
+        health_reward=0,
+        armor_reward=0,
+        ammo_reward=0
     )
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
     game = DQNPreprocessGameWrapper(game)

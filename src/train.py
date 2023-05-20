@@ -14,7 +14,8 @@ agent = DQNAgent(
     n_actions=10,
     epsilon=0.6,
     populate_steps=100,
-    batch_size=64
+    batch_size=64,
+    update_weights_interval=1_000
 )
 
 logger = TensorBoardLogger(

@@ -186,7 +186,7 @@ class DQNAgent(LightningModule, Agent):
         batch_size=32,
         epsilon=0.5,
         gamma=0.99,
-        buffer_size=10**5, 
+        buffer_size=5*10**4, 
         populate_steps=1_000,
         actions_per_step=10,
         update_weights_interval=1_000
@@ -290,6 +290,7 @@ class DQNAgent(LightningModule, Agent):
         
         if self.global_step % self.hparams.update_weights_interval == 0:
             self.__update_weights()
+            self.hparams.epsilon = max(self.hparams.epsilon * 0.99, 0.02)
             
         self.__log_metrics(loss)
         return loss
@@ -305,15 +306,9 @@ class DQNAgent(LightningModule, Agent):
         self.log(prefix+'deaths_count', float(self.deaths_count))
         self.log(prefix+'hits_made_count', float(self.hits_made_count))
         self.log(prefix+'hits_taken_count', float(self.hits_taken_count))
-        self.log(prefix+'items_collected_count', float(self.items_collected_count))
         self.log(prefix+'damage_make_count', float(self.damage_make_count))
         self.log(prefix+'damage_taken_count', float(self.damage_taken_count))
-        self.log(prefix+'armor_gained_count', float(self.armor_gained_count))
-        self.log(prefix+'armor_lost_count', float(self.armor_lost_count))
-        self.log(prefix+'health_gained_count', float(self.health_gained_count))
-        self.log(prefix+'health_lost_count', float(self.health_lost_count))
         self.log(prefix+'death_tics_count', float(self.death_tics_count))
-        self.log(prefix+'attack_not_ready_tics', float(self.attack_not_ready_tics))
         
     def __update_metrics(self):
         self.total_reward = self.env.get_total_reward()
