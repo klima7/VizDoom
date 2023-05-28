@@ -37,10 +37,10 @@ advanced_profiler = AdvancedProfiler(
 
 trainer = Trainer(
     accelerator='cuda',
-    max_epochs=10,
+    max_epochs=-1,
     enable_progress_bar=True,
     logger=logger,
-    profiler=simple_profiler
+    # profiler=simple_profiler
 )
     
 warnings.filterwarnings("ignore", ".*train_dataloader, does not have many workers.*")

@@ -19,7 +19,7 @@ def _create_game(name, window_visible=False):
     game.load_config(str(Path(__file__).parent.parent / 'scenarios' / 'multi.cfg'))
     game.set_mode(vzd.Mode.PLAYER)
     game.add_game_args('-deathmatch')
-    game.set_episode_timeout(60000)
+    game.set_episode_timeout(3000)
     
     game.set_depth_buffer_enabled(True)
     game.set_labels_buffer_enabled(True)
@@ -55,6 +55,6 @@ def _apply_game_wrappers(game, log_rewards):
     )
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
     game = StickToMapDoomWrapper(game, map='map01')
-    game = AddBotsDoomWrapper(game, bots_count=1)
+    game = AddBotsDoomWrapper(game, bots_count=0)
     game = DQNPreprocessGameWrapper(game)
     return game

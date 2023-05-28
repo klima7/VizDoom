@@ -81,7 +81,7 @@ class DQNAgent(LightningModule, Agent):
 
         try:
             self.env.make_action(action)
-        except vzd.vizdoom.SignalException:
+        except (vzd.vizdoom.SignalException, vzd.vizdoom.ViZDoomUnexpectedExitException):
             raise KeyboardInterrupt
 
         reward = self.env.get_last_reward()
@@ -123,7 +123,7 @@ class DQNAgent(LightningModule, Agent):
             self.__update_weights()
             self.hparams.epsilon = max(self.hparams.epsilon * 0.99, 0.02)
 
-        # self.__log_metrics(loss)
+        self.__log_metrics(loss)
         return loss
 
     def configure_optimizers(self):
