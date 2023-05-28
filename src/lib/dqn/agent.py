@@ -5,6 +5,7 @@ from torch import nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 from pytorch_lightning import LightningModule
+import vizdoom as vzd
 
 from .network import DQNNetwork
 from ..agent import Agent
@@ -74,10 +75,15 @@ class DQNAgent(LightningModule, Agent):
     def __update_weights(self):
         self.model.load_state_dict(self.target_model.state_dict())
 
-    def __play_step(self, reset=True):
+    def __play_step(self):
         state = self.env.get_state()
         action = self.get_action(state)
-        self.env.make_action(action)
+
+        try:
+            self.env.make_action(action)
+        except vzd.vizdoom.SignalException:
+            raise KeyboardInterrupt
+
         reward = self.env.get_last_reward()
         next_state = self.env.get_state()
         done = self.env.is_episode_finished()
@@ -100,7 +106,7 @@ class DQNAgent(LightningModule, Agent):
         while len(self.buffer) < self.hparams.populate_steps:
             done = self.__play_step()
             if done:
-                self.__reset_env()
+                self.env.new_episode()
 
     def training_step(self, batch, batch_no):
         for _ in range(self.hparams.actions_per_step):
@@ -109,7 +115,7 @@ class DQNAgent(LightningModule, Agent):
             if done:
                 self.dataset.end_epoch()
                 self.__update_metrics()
-                self.__reset_env()
+                self.env.new_episode()
 
         loss = self.__calculate_loss(batch)
 
@@ -130,10 +136,6 @@ class DQNAgent(LightningModule, Agent):
             batch_size=self.hparams.batch_size,
         )
         return dataloader
-
-    def __reset_env(self):
-        self.env.close()
-        self.env.init()
 
     def __calculate_loss(self, batch):
         states, actions, rewards, next_states, dones = batch
