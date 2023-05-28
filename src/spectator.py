@@ -24,5 +24,6 @@ while True:
             game.respawn_player()
 
         game.advance_action()
-        
-    game.new_episode()
+
+    game.close()
+    game.init()

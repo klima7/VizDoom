@@ -82,8 +82,6 @@ class DQNAgent(LightningModule, Agent):
         next_state = self.env.get_state()
         done = self.env.is_episode_finished()
         self.buffer.add(state, action, reward, next_state, done)
-        if done and reset:
-            self.env.new_episode()
         return done
 
     def __get_action_vec(self, action_idx):
@@ -91,29 +89,27 @@ class DQNAgent(LightningModule, Agent):
         action_vector[action_idx] = 1
         return action_vector
 
-    def __populate_buffer(self):
-        while len(self.buffer) < self.hparams.populate_steps:
-            self.__play_step()
-        self.env.new_episode()
-
     def on_fit_start(self):
-        super().on_fit_start()
         self.env.init()
         self.__populate_buffer()
 
     def on_fit_end(self):
-        super().on_fit_end()
         self.env.close()
+
+    def __populate_buffer(self):
+        while len(self.buffer) < self.hparams.populate_steps:
+            done = self.__play_step()
+            if done:
+                self.__reset_env()
 
     def training_step(self, batch, batch_no):
         for _ in range(self.hparams.actions_per_step):
-            done = self.__play_step(reset=False)
+            done = self.__play_step()
 
             if done:
                 self.dataset.end_epoch()
-                self.reset()
                 self.__update_metrics()
-                self.env.new_episode()
+                self.__reset_env()
 
         loss = self.__calculate_loss(batch)
 
@@ -134,6 +130,10 @@ class DQNAgent(LightningModule, Agent):
             batch_size=self.hparams.batch_size,
         )
         return dataloader
+
+    def __reset_env(self):
+        self.env.close()
+        self.env.init()
 
     def __calculate_loss(self, batch):
         states, actions, rewards, next_states, dones = batch

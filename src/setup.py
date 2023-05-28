@@ -4,6 +4,7 @@ import vizdoom as vzd
 
 from lib.dqn import DQNPreprocessGameWrapper
 from lib.reward import RewardsDoomWrapper, Rewards
+from lib.bots import AddBotsDoomWrapper
     
     
 def setup_multiplayer_game(log_rewards=False):
@@ -18,7 +19,7 @@ def _create_game(name, window_visible=False):
     game.set_doom_map('map01')
     game.set_mode(vzd.Mode.PLAYER)
     game.add_game_args('-deathmatch')
-    game.set_episode_timeout(6000)
+    game.set_episode_timeout(60000)
     
     game.set_depth_buffer_enabled(True)
     game.set_labels_buffer_enabled(True)
@@ -48,15 +49,11 @@ def _create_game(name, window_visible=False):
 def _apply_game_wrappers(game, log_rewards):
     rewards = Rewards(
         kill_reward=50,
-        death_penalty=1,
         single_death_penalty=50,
-        suicide_penalty=0,
         damage_reward=1,
         damage_penalty=1,
-        health_reward=0,
-        armor_reward=0,
-        ammo_reward=0
     )
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
     game = DQNPreprocessGameWrapper(game)
+    game = AddBotsDoomWrapper(game, bots_count=1)
     return game
