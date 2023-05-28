@@ -204,12 +204,12 @@ class RewardsDoomWrapper:
     
     def make_action(self, action, skip=1):
         self.game.make_action(action, skip)
-        self.__update_trackers()
+        self.update_trackers()
         
     def advance_action(self, tics=1, update_state=True):
         self.game.advance_action(tics, update_state)
-        self.__update_trackers()
-        
+        self.update_trackers()
+
     def get_last_reward(self):
         return self.__trackers.get_last_reward()
         
@@ -273,7 +273,7 @@ class RewardsDoomWrapper:
     def get_altattack_not_ready_tics_count(self):
         return self.__altattack_ready_tracker.get_negative_count()
         
-    def __update_trackers(self):
+    def update_trackers(self):
         self.__trackers.update()
         if self.__log:
             self.__log_last_rewards()

@@ -38,7 +38,7 @@ advanced_profiler = AdvancedProfiler(
 
 trainer = Trainer(
     accelerator='cuda',
-    max_epochs=10,
+    max_epochs=-1,
     enable_progress_bar=True,
     logger=logger,
     # profiler=advanced_profiler

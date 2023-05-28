@@ -10,7 +10,7 @@ class DQNPreprocessGameWrapper:
     ]
 
     IMPORTANT_VARIABLES = {
-        vzd.GameVariable.HEALTH: slice(0, 200),
+        vzd.GameVariable.HEALTH: slice(0, 100),
         vzd.GameVariable.AMMO4: slice(0, 50),
     }
 
