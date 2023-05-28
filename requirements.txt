@@ -3,3 +3,4 @@ pytorch
 lightning
 scikit-image
 opencv-python
+tqdm
