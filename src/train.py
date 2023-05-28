@@ -14,6 +14,7 @@ agent = DQNAgent(
     epsilon=0.6,
     populate_steps=100,
     batch_size=128,
+    actions_per_step=10,
     update_weights_interval=1_000
 )
 
@@ -38,7 +39,7 @@ trainer = Trainer(
     max_epochs=-1,
     enable_progress_bar=True,
     logger=logger,
-    # profiler=advanced_profiler
+    # profiler=simple_profiler
 )
     
 warnings.filterwarnings("ignore", ".*train_dataloader, does not have many workers.*")

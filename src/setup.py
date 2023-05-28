@@ -2,23 +2,13 @@ from pathlib import Path
 
 import vizdoom as vzd
 
-from lib.agent import RandomAgent
-from lib.multi import Player, MultiplayerDoomWrapper, Bot
 from lib.dqn import DQNPreprocessGameWrapper
 from lib.reward import RewardsDoomWrapper, Rewards
     
     
 def setup_multiplayer_game(log_rewards=False):
-    player1_agent = RandomAgent(n_actions=10)
-    player1_game = _create_game(name='player1', window_visible=False)
-    player1 = Player(player1_agent, player1_game)
-    
-    players = [player1]
-    bots = [Bot(), Bot()]
-    
     game = _apply_game_wrappers(_create_game(name='AI', window_visible=True), log_rewards=log_rewards)
-    multiplayer_game = MultiplayerDoomWrapper(game, players, bots)
-    return multiplayer_game
+    return game
 
 
 def _create_game(name, window_visible=False):

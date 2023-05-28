@@ -16,10 +16,11 @@ class DQNAgent(LightningModule, Agent):
     def __init__(
             self,
             n_actions,
+            lr=0.001,
             batch_size=32,
             epsilon=0.5,
             gamma=0.99,
-            buffer_size=5 * 10 ** 4,
+            buffer_size=50_000,
             populate_steps=1_000,
             actions_per_step=10,
             update_weights_interval=1_000
@@ -31,7 +32,6 @@ class DQNAgent(LightningModule, Agent):
 
         self.buffer = ReplayBuffer(self.hparams.buffer_size)
         self.dataset = ReplayDataset(self.buffer, self.hparams.batch_size)
-        self.state = None
         self.env = None
 
         # metrics
@@ -75,16 +75,15 @@ class DQNAgent(LightningModule, Agent):
         self.model.load_state_dict(self.target_model.state_dict())
 
     def __play_step(self, reset=True):
-        action = self.get_action(self.state)
+        state = self.env.get_state()
+        action = self.get_action(state)
         self.env.make_action(action)
         reward = self.env.get_last_reward()
         next_state = self.env.get_state()
         done = self.env.is_episode_finished()
-        self.buffer.add(self.state, action, reward, next_state, done)
-        self.state = next_state
+        self.buffer.add(state, action, reward, next_state, done)
         if done and reset:
             self.env.new_episode()
-            self.state = self.env.get_state()
         return done
 
     def __get_action_vec(self, action_idx):
@@ -96,14 +95,10 @@ class DQNAgent(LightningModule, Agent):
         while len(self.buffer) < self.hparams.populate_steps:
             self.__play_step()
         self.env.new_episode()
-        self.state = self.env.get_state()
 
     def on_fit_start(self):
         super().on_fit_start()
         self.env.init()
-        self.env.set_doom_map('map01')
-        self.env.add_bots()
-        self.state = self.env.get_state()
         self.__populate_buffer()
 
     def on_fit_end(self):
@@ -111,7 +106,7 @@ class DQNAgent(LightningModule, Agent):
         self.env.close()
 
     def training_step(self, batch, batch_no):
-        for _ in range(10):
+        for _ in range(self.hparams.actions_per_step):
             done = self.__play_step(reset=False)
 
             if done:
@@ -119,9 +114,6 @@ class DQNAgent(LightningModule, Agent):
                 self.reset()
                 self.__update_metrics()
                 self.env.new_episode()
-                self.env.set_doom_map('map01')
-                self.env.add_bots()
-                self.state = self.env.get_state()
 
         loss = self.__calculate_loss(batch)
 
@@ -131,6 +123,31 @@ class DQNAgent(LightningModule, Agent):
 
         self.__log_metrics(loss)
         return loss
+
+    def configure_optimizers(self):
+        optimizer = Adam(self.target_model.parameters(), lr=self.hparams.lr)
+        return optimizer
+
+    def train_dataloader(self):
+        dataloader = DataLoader(
+            dataset=self.dataset,
+            batch_size=self.hparams.batch_size,
+        )
+        return dataloader
+
+    def __calculate_loss(self, batch):
+        states, actions, rewards, next_states, dones = batch
+        actions = torch.argmax(actions, dim=1)
+
+        state_action_values = self.target_model(states).gather(1, actions.long().unsqueeze(-1)).squeeze(-1)
+
+        with torch.no_grad():
+            next_state_values = self.model(next_states).max(1)[0]
+            next_state_values[dones] = 0.0
+            next_state_values = next_state_values.detach()
+
+        expected_state_action_values = next_state_values * self.hparams.gamma + rewards
+        return nn.MSELoss()(state_action_values, expected_state_action_values)
 
     def __log_metrics(self, loss, prefix=''):
         self.log('loss', loss)
@@ -163,28 +180,3 @@ class DQNAgent(LightningModule, Agent):
         self.health_lost_count = self.env.get_health_gained_count()
         self.death_tics_count = self.env.get_health_lost_count()
         self.attack_not_ready_tics = self.env.get_death_tics_count()
-
-    def configure_optimizers(self):
-        optimizer = Adam(self.target_model.parameters(), lr=0.001)
-        return optimizer
-
-    def train_dataloader(self):
-        dataloader = DataLoader(
-            dataset=self.dataset,
-            batch_size=self.hparams.batch_size,
-        )
-        return dataloader
-
-    def __calculate_loss(self, batch):
-        states, actions, rewards, next_states, dones = batch
-        actions = torch.argmax(actions, axis=1)
-
-        state_action_values = self.target_model(states).gather(1, actions.long().unsqueeze(-1)).squeeze(-1)
-
-        with torch.no_grad():
-            next_state_values = self.model(next_states).max(1)[0]
-            next_state_values[dones] = 0.0
-            next_state_values = next_state_values.detach()
-
-        expected_state_action_values = next_state_values * self.hparams.gamma + rewards
-        return nn.MSELoss()(state_action_values, expected_state_action_values)
