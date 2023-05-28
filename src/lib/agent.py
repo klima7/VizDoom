@@ -38,6 +38,6 @@ class RandomAgent(Agent):
         return self.action
     
     def __create_actions(self, n_actions):
-            actions = np.zeros((n_actions, n_actions))
-            np.fill_diagonal(actions, 1)
-            return actions
+        actions = np.zeros((n_actions, n_actions))
+        np.fill_diagonal(actions, 1)
+        return actions

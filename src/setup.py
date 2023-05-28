@@ -13,12 +13,8 @@ def setup_multiplayer_game(log_rewards=False):
     player1_game = _create_game(name='player1', window_visible=False)
     player1 = Player(player1_agent, player1_game)
     
-    player2_agent = RandomAgent(n_actions=10)
-    player2_game = _create_game(name='player2')
-    player2 = Player(player2_agent, player2_game)
-    
-    players = [player1, player2]
-    bots = [Bot(), Bot(), Bot()]
+    players = [player1]
+    bots = [Bot(), Bot()]
     
     game = _apply_game_wrappers(_create_game(name='AI', window_visible=True), log_rewards=log_rewards)
     multiplayer_game = MultiplayerDoomWrapper(game, players, bots)
@@ -28,11 +24,11 @@ def setup_multiplayer_game(log_rewards=False):
 def _create_game(name, window_visible=False):
     game = vzd.DoomGame()
     
-    game.load_config(str(Path(__file__).parent.parent.parent / 'scenarios' / 'multi.cfg'))
+    game.load_config(str(Path(__file__).parent.parent / 'scenarios' / 'multi.cfg'))
     game.set_doom_map('map01')
     game.set_mode(vzd.Mode.PLAYER)
     game.add_game_args('-deathmatch')
-    game.set_episode_timeout(500)
+    game.set_episode_timeout(6000)
     
     game.set_depth_buffer_enabled(True)
     game.set_labels_buffer_enabled(True)
@@ -58,12 +54,13 @@ def _create_game(name, window_visible=False):
     game.set_console_enabled(False)
     return game
 
+
 def _apply_game_wrappers(game, log_rewards):
     rewards = Rewards(
         kill_reward=50,
         death_penalty=1,
         single_death_penalty=50,
-        suicide_penalty=50,
+        suicide_penalty=0,
         damage_reward=1,
         damage_penalty=1,
         health_reward=0,

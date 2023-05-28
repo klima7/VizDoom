@@ -3,7 +3,7 @@ import numpy as np
 import vizdoom as vzd
 
 from lib.dqn import DQNPreprocessGameWrapper
-from lib.setup import setup_multiplayer_game
+from setup import setup_multiplayer_game
 
 game = setup_multiplayer_game(log_rewards=True)
 game.set_mode(vzd.Mode.SPECTATOR)

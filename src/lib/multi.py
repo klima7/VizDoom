@@ -33,7 +33,7 @@ class MultiplayerDoomWrapper:
     def init(self):
         self.__start_agents_games()
         self.game.init()
-        self.__add_bots()
+        self.add_bots()
         
     def close(self):
         self.game.close()
@@ -68,7 +68,7 @@ class MultiplayerDoomWrapper:
             game.new_episode()
             game.set_doom_map('map01')
 
-    def __add_bots(self):
+    def add_bots(self):
         for bot in self.__bots:
             if bot.name:
                 self.send_game_command(f'addbot {bot.name}')

@@ -6,15 +6,14 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.profilers import SimpleProfiler, AdvancedProfiler
 
 from lib.dqn import DQNAgent
-from lib.setup import setup_multiplayer_game
-
+from setup import setup_multiplayer_game
 
 
 agent = DQNAgent(
     n_actions=10,
     epsilon=0.6,
     populate_steps=100,
-    batch_size=64,
+    batch_size=128,
     update_weights_interval=1_000
 )
 
@@ -38,7 +37,7 @@ trainer = Trainer(
     accelerator='cuda',
     max_epochs=-1,
     enable_progress_bar=True,
-    logger = logger,
+    logger=logger,
     # profiler=advanced_profiler
 )
     
