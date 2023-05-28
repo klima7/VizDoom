@@ -123,7 +123,7 @@ class DQNAgent(LightningModule, Agent):
             self.__update_weights()
             self.hparams.epsilon = max(self.hparams.epsilon * 0.99, 0.02)
 
-        self.__log_metrics(loss)
+        # self.__log_metrics(loss)
         return loss
 
     def configure_optimizers(self):
@@ -152,33 +152,34 @@ class DQNAgent(LightningModule, Agent):
         return nn.MSELoss()(state_action_values, expected_state_action_values)
 
     def __log_metrics(self, loss, prefix=''):
-        self.log('loss', loss)
-        self.log(prefix + 'epsilon', float(self.hparams.epsilon))
-        self.log(prefix + 'buffer_size', float(len(self.buffer)))
-
-        self.log(prefix + 'total_reward', float(self.total_reward))
-        self.log(prefix + 'frags_count', float(self.frags_count))
-        self.log(prefix + 'suicides_count', float(self.suicides_count))
-        self.log(prefix + 'deaths_count', float(self.deaths_count))
-        self.log(prefix + 'hits_made_count', float(self.hits_made_count))
-        self.log(prefix + 'hits_taken_count', float(self.hits_taken_count))
-        self.log(prefix + 'damage_make_count', float(self.damage_make_count))
-        self.log(prefix + 'damage_taken_count', float(self.damage_taken_count))
-        self.log(prefix + 'death_tics_count', float(self.death_tics_count))
+        self.log_dict({
+            'loss': loss,
+            f'{prefix}epsilon': self.hparams.epsilon,
+            f'{prefix}buffer_size': float(len(self.buffer)),
+            f'{prefix}total_reward': self.total_reward,
+            f'{prefix}frags_count': self.frags_count,
+            f'{prefix}suicides_count': self.suicides_count,
+            f'{prefix}deaths_count': self.deaths_count,
+            f'{prefix}hits_made_count': self.hits_made_count,
+            f'{prefix}hits_taken_count': self.hits_taken_count,
+            f'{prefix}damage_make_count': self.damage_make_count,
+            f'{prefix}damage_taken_count': self.damage_taken_count,
+            f'{prefix}death_tics_count': self.death_tics_count,
+        })
 
     def __update_metrics(self):
-        self.total_reward = self.env.get_total_reward()
-        self.frags_count = self.env.get_frags_count()
-        self.suicides_count = self.env.get_suicides_count()
-        self.deaths_count = self.env.get_deaths_count()
-        self.hits_made_count = self.env.get_hits_made_count()
-        self.hits_taken_count = self.env.get_hits_taken_count()
-        self.items_collected_count = self.env.get_items_collected_count()
-        self.damage_make_count = self.env.get_damage_make_count()
-        self.damage_taken_count = self.env.get_damage_taken_count()
-        self.armor_gained_count = self.env.get_secrets_count()
-        self.armor_lost_count = self.env.get_armor_gained_count()
-        self.health_gained_count = self.env.get_armor_lost_count()
-        self.health_lost_count = self.env.get_health_gained_count()
-        self.death_tics_count = self.env.get_health_lost_count()
-        self.attack_not_ready_tics = self.env.get_death_tics_count()
+        self.total_reward = float(self.env.get_total_reward())
+        self.frags_count = float(self.env.get_frags_count())
+        self.suicides_count = float(self.env.get_suicides_count())
+        self.deaths_count = float(self.env.get_deaths_count())
+        self.hits_made_count = float(self.env.get_hits_made_count())
+        self.hits_taken_count = float(self.env.get_hits_taken_count())
+        self.items_collected_count = float(self.env.get_items_collected_count())
+        self.damage_make_count = float(self.env.get_damage_make_count())
+        self.damage_taken_count = float(self.env.get_damage_taken_count())
+        self.armor_gained_count = float(self.env.get_secrets_count())
+        self.armor_lost_count = float(self.env.get_armor_gained_count())
+        self.health_gained_count = float(self.env.get_armor_lost_count())
+        self.health_lost_count = float(self.env.get_health_gained_count())
+        self.death_tics_count = float(self.env.get_health_lost_count())
+        self.attack_not_ready_tics = float(self.env.get_death_tics_count())
