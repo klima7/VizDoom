@@ -16,6 +16,7 @@ agent = DQNAgent(
     buffer_size=40_000,
     batch_size=128,
     actions_per_step=10,
+    skip=2,
     update_weights_interval=1_000
 )
 
@@ -37,10 +38,10 @@ advanced_profiler = AdvancedProfiler(
 
 trainer = Trainer(
     accelerator='cuda',
-    max_epochs=-1,
+    max_epochs=10,
     enable_progress_bar=True,
     logger=logger,
-    # profiler=simple_profiler
+    # profiler=advanced_profiler
 )
     
 warnings.filterwarnings("ignore", ".*train_dataloader, does not have many workers.*")

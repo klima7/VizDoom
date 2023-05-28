@@ -55,6 +55,6 @@ def _apply_game_wrappers(game, log_rewards):
     )
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
     game = StickToMapDoomWrapper(game, map='map01')
-    game = AddBotsDoomWrapper(game, bots_count=0)
+    game = AddBotsDoomWrapper(game, bots_count=2)
     game = DQNPreprocessGameWrapper(game)
     return game

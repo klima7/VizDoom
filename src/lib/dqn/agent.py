@@ -19,6 +19,7 @@ class DQNAgent(LightningModule, Agent):
             n_actions,
             lr=0.001,
             batch_size=32,
+            skip=1,
             epsilon=0.5,
             gamma=0.99,
             buffer_size=50_000,
@@ -80,7 +81,7 @@ class DQNAgent(LightningModule, Agent):
         action = self.get_action(state)
 
         try:
-            self.env.make_action(action)
+            self.env.make_action(action, skip=self.hparams.skip)
         except (vzd.vizdoom.SignalException, vzd.vizdoom.ViZDoomUnexpectedExitException):
             raise KeyboardInterrupt
 
