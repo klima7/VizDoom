@@ -54,7 +54,7 @@ class DQNPreprocessGameWrapper:
     def __get_screen(self, state):
         screen_buffer = cv2.resize(state.screen_buffer, self.SCREEN_SIZE)[np.newaxis, ...] / 255  # 240x320
         depth_buffer = cv2.resize(state.depth_buffer, self.SCREEN_SIZE)[np.newaxis, ...] / 255
-        labels = self.__get_important_labels_map(cv2.resize(state.labels_buffer, self.SCREEN_SIZE), state.labels)
+        labels = self.__get_important_labels_map(cv2.resize(state.labels_buffer, self.SCREEN_SIZE, cv2.INTER_NEAREST), state.labels)
         screen = np.concatenate([screen_buffer, depth_buffer, labels], axis=0).astype(np.float32)
         return screen
 
