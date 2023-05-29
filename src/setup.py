@@ -48,13 +48,17 @@ def _create_game(name, window_visible=False):
 
 def _apply_game_wrappers(game, log_rewards):
     rewards = Rewards(
-        kill_reward=50,
-        single_death_penalty=50,
-        damage_reward=1,
-        damage_penalty=1,
+        kill_reward=10,
+        single_death_penalty=10,
+        hit_reward=1,
+        hit_penalty=1,
     )
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
     game = StickToMapDoomWrapper(game, map='map01')
+
+
     game = AddBotsDoomWrapper(game, bots_count=2)
+
+
     game = DQNPreprocessGameWrapper(game)
     return game

@@ -26,7 +26,7 @@ class ConvNetwork(nn.Module):
             nn.ReLU(),
 
             nn.Flatten(),
-            nn.Dropout(0.5),
+            nn.Dropout(0.2),
         )
 
     def forward(self, image):
@@ -45,8 +45,10 @@ class DQNNetwork(nn.Module):
         self.neck_net = nn.Sequential(
             nn.Linear(384 + 192 + 2, 256),
             nn.ReLU(),
+            nn.Dropout(0.2),
             nn.Linear(256, 128),
             nn.ReLU(),
+            nn.Dropout(0.2),
             nn.Linear(128, n_actions),
         )
 

@@ -9,15 +9,23 @@ from lib.dqn import DQNAgent
 from setup import setup_multiplayer_game
 
 
-agent = DQNAgent(
-    n_actions=10,
-    epsilon=0.6,
-    populate_steps=1000,
-    buffer_size=40_000,
+# agent = DQNAgent(
+#     lr=0.0001,
+#     n_actions=10,
+#     epsilon=0.5,
+#     populate_steps=1000,
+#     buffer_size=30_000,
+#     batch_size=128,
+#     actions_per_step=10,
+#     skip=2,
+#     update_weights_interval=1_000
+# )
+
+agent = DQNAgent.load_from_checkpoint(
+    '/home/klima7/studies/guzw/vizdoom/logs/version_5/checkpoints/epoch=9680-step=106228.ckpt',
+    epsilon=0.16,
     batch_size=128,
-    actions_per_step=10,
-    skip=2,
-    update_weights_interval=1_000
+    lr=0.0001
 )
 
 logger = TensorBoardLogger(

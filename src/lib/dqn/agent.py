@@ -56,7 +56,11 @@ class DQNAgent(LightningModule, Agent):
         return action_vec
 
     def __get_best_action(self, state):
-        qvalues = self.model.forward_state(state, self.device)
+        self.model.eval()
+        with torch.no_grad():
+            qvalues = self.model.forward_state(state, self.device)
+        self.model.train()
+
         best_action_idx = torch.argmax(qvalues).item()
         best_action_vec = self.__get_action_vec(best_action_idx)
         return best_action_vec
@@ -127,6 +131,8 @@ class DQNAgent(LightningModule, Agent):
 
         if self.global_step % self.hparams.update_weights_interval == 0:
             self.__update_weights()
+
+        if self.global_step % 2_000 == 0:
             self.hparams.epsilon = max(self.hparams.epsilon * 0.99, 0.02)
 
         self.log('train_loss', loss),
