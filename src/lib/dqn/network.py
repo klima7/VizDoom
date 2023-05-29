@@ -21,10 +21,6 @@ class ConvNetwork(nn.Module):
             nn.MaxPool2d(2),
             nn.ReLU(),
 
-            nn.Conv2d(channels[3], channels[4], kernel_size=3),
-            nn.MaxPool2d(2),
-            nn.ReLU(),
-
             nn.Flatten(),
             nn.Dropout(0.2),
         )
@@ -38,9 +34,7 @@ class DQNNetwork(nn.Module):
     def __init__(self, n_actions):
         super().__init__()
 
-        self.screen_net = ConvNetwork([3, 32, 64, 128, 128])
-
-        self.automap_net = ConvNetwork([1, 8, 32, 64, 64])
+        self.screen_net = ConvNetwork([3, 16, 32, 64])
 
         self.neck_net = nn.Sequential(
             nn.Linear(384 + 2, 256),

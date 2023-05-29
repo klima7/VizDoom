@@ -1,9 +1,12 @@
 import numpy as np
 import vizdoom as vzd
+import cv2
 
 
 class DQNPreprocessGameWrapper:
     # BulletPuff, DoomPlayer, TeleportFog, Blood
+    SCREEN_SIZE = (80, 60)  # width, height
+
     IMPORTANT_LABELS = [
         'DoomPlayer',
     ]
@@ -35,11 +38,8 @@ class DQNPreprocessGameWrapper:
             self.__update_seen_labels(state)
 
         if self.game.is_episode_finished():
-            w = self.game.get_screen_width()
-            h = self.game.get_screen_height()
             c = self.game.get_screen_channels()
-
-            screen = np.zeros((c + 1 + len(self.IMPORTANT_LABELS), h, w), dtype=np.float32)
+            screen = np.zeros((c + 1 + len(self.IMPORTANT_LABELS), self.SCREEN_SIZE[1], self.SCREEN_SIZE[0]), dtype=np.float32)
             variables = np.zeros((len(self.IMPORTANT_VARIABLES, )), dtype=np.float32)
 
         else:
@@ -52,9 +52,9 @@ class DQNPreprocessGameWrapper:
         }
 
     def __get_screen(self, state):
-        screen_buffer = state.screen_buffer[np.newaxis, ...] / 255  # 240x320
-        depth_buffer = state.depth_buffer[np.newaxis, ...] / 255
-        labels = self.__get_important_labels_map(state.labels_buffer, state.labels)
+        screen_buffer = cv2.resize(state.screen_buffer, self.SCREEN_SIZE)[np.newaxis, ...] / 255  # 240x320
+        depth_buffer = cv2.resize(state.depth_buffer, self.SCREEN_SIZE)[np.newaxis, ...] / 255
+        labels = self.__get_important_labels_map(cv2.resize(state.labels_buffer, self.SCREEN_SIZE), state.labels)
         screen = np.concatenate([screen_buffer, depth_buffer, labels], axis=0).astype(np.float32)
         return screen
 

@@ -13,7 +13,6 @@ while True:
     while not game.is_episode_finished():
         state = game.get_state()
         
-        cv2.imshow('Automap', np.transpose(state['automap'], [1, 2, 0]))
         cv2.imshow('Screen', state['screen'][0])
         cv2.imshow('Depth', state['screen'][1])
         for i, label_name in enumerate(DQNPreprocessGameWrapper.IMPORTANT_LABELS):

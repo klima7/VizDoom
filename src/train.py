@@ -12,9 +12,9 @@ from setup import setup_multiplayer_game
 agent = DQNAgent(
     lr=0.0001,
     n_actions=10,
-    epsilon=0.5,
+    epsilon=0.6,
     populate_steps=1000,
-    buffer_size=30_000,
+    buffer_size=100_000,
     batch_size=128,
     actions_per_step=10,
     skip=2,
