@@ -38,12 +38,12 @@ class DQNNetwork(nn.Module):
     def __init__(self, n_actions):
         super().__init__()
 
-        self.screen_net = ConvNetwork([4, 32, 64, 128, 128])
+        self.screen_net = ConvNetwork([3, 32, 64, 128, 128])
 
         self.automap_net = ConvNetwork([1, 8, 32, 64, 64])
 
         self.neck_net = nn.Sequential(
-            nn.Linear(384 + 192 + 2, 256),
+            nn.Linear(384 + 2, 256),
             nn.ReLU(),
             nn.Dropout(0.2),
             nn.Linear(256, 128),
@@ -56,15 +56,15 @@ class DQNNetwork(nn.Module):
         # summary(self.screen_net, input_data=data['screen'], col_names=['input_size', 'output_size', 'num_params', 'params_percent'])
         screen_out = self.screen_net(data['screen'])
         # summary(self.automap_net, input_data=data['automap'], col_names=['input_size', 'output_size', 'num_params', 'params_percent'])
-        automap_out = self.automap_net(data['automap'])
-        neck_in = torch.cat([screen_out, automap_out, data['variables']], axis=1)
+        # automap_out = self.automap_net(data['automap'])
+        neck_in = torch.cat([screen_out, data['variables']], axis=1)
         # summary(self.neck_net, input_data=neck_in, col_names=['input_size', 'output_size', 'num_params', 'params_percent'])
         neck_out = self.neck_net(neck_in)
         return neck_out
 
     def forward_state(self, state, device=None):
         screens = torch.tensor(state['screen'], device=device, dtype=torch.float32).unsqueeze(0)
-        automaps = torch.tensor(state['automap'], device=device, dtype=torch.float32).unsqueeze(0)
+        # automaps = torch.tensor(state['automap'], device=device, dtype=torch.float32).unsqueeze(0)
         variables = torch.tensor(state['variables'], device=device, dtype=torch.float32).unsqueeze(0)
-        data = {'screen': screens, 'automap': automaps, 'variables': variables}
+        data = {'screen': screens, 'variables': variables}
         return self.forward(data)[0]

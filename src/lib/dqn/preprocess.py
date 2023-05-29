@@ -6,7 +6,6 @@ class DQNPreprocessGameWrapper:
     # BulletPuff, DoomPlayer, TeleportFog, Blood
     IMPORTANT_LABELS = [
         'DoomPlayer',
-        'TeleportFog',
     ]
 
     IMPORTANT_VARIABLES = {
@@ -41,17 +40,14 @@ class DQNPreprocessGameWrapper:
             c = self.game.get_screen_channels()
 
             screen = np.zeros((c + 1 + len(self.IMPORTANT_LABELS), h, w), dtype=np.float32)
-            automap = np.zeros((1, h, w), dtype=np.float32)
             variables = np.zeros((len(self.IMPORTANT_VARIABLES, )), dtype=np.float32)
 
         else:
             screen = self.__get_screen(state)
-            automap = self.__get_automap(state.automap_buffer)
             variables = self.__get_important_variables(state.game_variables)
 
         return {
             'screen': screen,
-            'automap': automap,
             'variables': variables
         }
 
