@@ -24,5 +24,4 @@ while True:
 
         game.advance_action()
 
-    game.close()
-    game.init()
+    game.new_episode()

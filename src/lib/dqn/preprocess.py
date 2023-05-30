@@ -5,7 +5,7 @@ import cv2
 
 class DQNPreprocessGameWrapper:
     # BulletPuff, DoomPlayer, TeleportFog, Blood
-    SCREEN_SIZE = (80, 60)  # width, height
+    SCREEN_SIZE = (160, 120)  # width, height
 
     IMPORTANT_LABELS = [
         'DoomPlayer',

@@ -24,10 +24,10 @@ def _create_game(name, window_visible=False):
     game.set_depth_buffer_enabled(True)
     game.set_labels_buffer_enabled(True)
     
-    game.set_automap_buffer_enabled(True)
-    game.set_automap_mode(vzd.AutomapMode.OBJECTS)
-    game.set_automap_rotate(True)
-    game.set_automap_render_textures(False)
+    # game.set_automap_buffer_enabled(True)
+    # game.set_automap_mode(vzd.AutomapMode.OBJECTS)
+    # game.set_automap_rotate(True)
+    # game.set_automap_render_textures(False)
 
     game.set_render_hud(False)
     game.set_render_minimal_hud(True)
@@ -48,17 +48,15 @@ def _create_game(name, window_visible=False):
 
 def _apply_game_wrappers(game, log_rewards):
     rewards = Rewards(
-        kill_reward=10,
-        single_death_penalty=10,
-        hit_reward=1,
-        hit_penalty=1,
+        kill_reward=50,
+        single_death_penalty=50,
+        hit_reward=5,
+        hit_penalty=5,
+        damage_reward=1,
+        damage_penalty=1,
     )
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
     game = StickToMapDoomWrapper(game, map='map01')
-
-
-    game = AddBotsDoomWrapper(game, bots_count=2)
-
-
+    game = AddBotsDoomWrapper(game, bots_count=4)
     game = DQNPreprocessGameWrapper(game)
     return game

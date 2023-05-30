@@ -41,6 +41,9 @@ class DQNAgent(LightningModule, Agent):
         self.train_metrics = {}
         self.val_metrics = {}
 
+        self.model.eval()
+        self.target_model.train()
+
     def set_train_environment(self, env):
         self.env = env
 
@@ -56,10 +59,8 @@ class DQNAgent(LightningModule, Agent):
         return action_vec
 
     def __get_best_action(self, state):
-        self.model.eval()
         with torch.no_grad():
             qvalues = self.model.forward_state(state, self.device)
-        self.model.train()
 
         best_action_idx = torch.argmax(qvalues).item()
         best_action_vec = self.__get_action_vec(best_action_idx)
@@ -68,7 +69,7 @@ class DQNAgent(LightningModule, Agent):
     def __update_weights(self):
         self.model.load_state_dict(self.target_model.state_dict())
 
-    def __play_step(self):
+    def __play_step(self, update_buffer=True):
         state = self.env.get_state()
         action = self.get_action(state)
 
@@ -77,10 +78,13 @@ class DQNAgent(LightningModule, Agent):
         except (vzd.vizdoom.SignalException, vzd.vizdoom.ViZDoomUnexpectedExitException):
             raise KeyboardInterrupt
 
-        reward = self.env.get_last_reward()
-        next_state = self.env.get_state()
         done = self.env.is_episode_finished()
-        self.buffer.add(state, action, reward, next_state, done)
+
+        if update_buffer:
+            reward = self.env.get_last_reward()
+            next_state = self.env.get_state()
+            self.buffer.add(state, action, reward, next_state, done)
+
         return done
 
     def __get_action_vec(self, action_idx):
@@ -95,36 +99,34 @@ class DQNAgent(LightningModule, Agent):
     def on_fit_end(self):
         self.env.close()
 
-    def on_train_epoch_start(self):
-        self.env.new_episode()
-
-    def on_train_epoch_end(self):
-        if self.current_epoch % self.hparams.validation_interval == 0:
-            self.__validate()
-
-    def __validate(self):
-        self.env.new_episode()
-
-        while not self.env.is_episode_finished():
-            state = self.env.get_state()
-            action = self.get_action(state, epsilon=0)
-            self.env.make_action(action)
-
-        self.val_metrics = self.__get_metrics(prefix='val_')
+    # def on_train_epoch_end(self):
+    #     if self.current_epoch % self.hparams.validation_interval == 0:
+    #         self.__validate()
+    #
+    # def __validate(self):
+    #     while not self.env.is_episode_finished():
+    #         state = self.env.get_state()
+    #         action = self.get_action(state, epsilon=0)
+    #         self.env.make_action(action)
+    #
+    #     self.val_metrics = self.__get_metrics(prefix='val_')
+    #     self.env.new_episode()
 
     def __populate_buffer(self):
         while len(self.buffer) < self.hparams.populate_steps:
             done = self.__play_step()
             if done:
                 self.env.new_episode()
+        self.env.new_episode()
 
     def training_step(self, batch, batch_no):
         for _ in range(self.hparams.actions_per_step):
-            done = self.__play_step()
+            done = self.__play_step(update_buffer=self.global_step % 10 == 0)
 
             if done:
                 self.dataset.end_epoch()
                 self.train_metrics = self.__get_metrics(prefix='train_')
+                self.env.new_episode()
                 break
 
         loss = self.__calculate_loss(batch)
@@ -132,7 +134,7 @@ class DQNAgent(LightningModule, Agent):
         if self.global_step % self.hparams.update_weights_interval == 0:
             self.__update_weights()
 
-        if self.global_step % 2_000 == 0:
+        if self.global_step % 1_000 == 0:
             self.hparams.epsilon = max(self.hparams.epsilon * 0.99, 0.02)
 
         self.log('train_loss', loss),
