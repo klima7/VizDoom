@@ -30,18 +30,14 @@ class ReplayBuffer(object):
 
 class ReplayDataset(IterableDataset):
     
-    def __init__(self, replay, batch_size):
+    def __init__(self, replay, game):
         self.replay = replay
-        self.batch_size = batch_size
-        self.__end_epoch = False
-        
+        self.game = game
+
     def __iter__(self):
-        while not self.__end_epoch:
+        self.game.new_episode()
+        while not self.game.is_episode_finished():
             sample = self.replay.sample()
             sample[0]['screen'] = sample[0]['screen'].astype(np.float32) / 255
             sample[3]['screen'] = sample[3]['screen'].astype(np.float32) / 255
             yield sample
-        self.__end_epoch = False
-
-    def end_epoch(self):
-        self.__end_epoch = True

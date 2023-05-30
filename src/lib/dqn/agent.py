@@ -43,13 +43,14 @@ class DQNAgent(LightningModule, Agent):
         self.target_model.train()
 
         self.buffer = ReplayBuffer(self.hparams.buffer_size)
-        self.dataset = ReplayDataset(self.buffer, self.hparams.batch_size)
+        self.dataset = None
 
         self.env = None
         self.train_metrics = {}
 
     def set_train_environment(self, env):
         self.env = env
+        self.dataset = ReplayDataset(self.buffer, self.env)
 
     def get_action(self, state, epsilon=None):
         if random.random() < (epsilon or self.hparams.epsilon):
@@ -88,15 +89,10 @@ class DQNAgent(LightningModule, Agent):
     def on_fit_end(self):
         self.env.close()
 
-    def on_train_epoch_start(self):
-        self.env.new_episode()
-
     def on_train_batch_start(self, batch, batch_idx):
         for _ in range(self.hparams.actions_per_step):
             done = self.__play_step(update_buffer=True)
-
             if done:
-                self.dataset.end_epoch()
                 self.train_metrics = self.env.get_metrics(prefix='train_')
                 break
 

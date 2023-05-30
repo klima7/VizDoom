@@ -34,7 +34,6 @@ class ConvNetwork(nn.Module):
             nn.ReLU(),
 
             nn.Flatten(),
-            # nn.Dropout(0.5),
         )
 
     def forward(self, image):
