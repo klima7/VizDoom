@@ -48,12 +48,12 @@ def _create_game(name, window_visible=False):
 
 def _apply_game_wrappers(game, log_rewards):
     rewards = Rewards(
-        kill_reward=50,
-        single_death_penalty=50,
+        kill_reward=20,
+        # single_death_penalty=50,
         hit_reward=5,
-        hit_penalty=5,
+        hit_penalty=1,
         damage_reward=1,
-        damage_penalty=1,
+        damage_penalty=0.2,
     )
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
     game = StickToMapDoomWrapper(game, map='map01')

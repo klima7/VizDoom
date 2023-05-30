@@ -14,18 +14,18 @@ agent = DQNAgent(
     n_actions=10,
     epsilon=0.6,
     populate_steps=1_000,
-    buffer_size=20_000,
+    buffer_size=15_000,
     batch_size=128,
     actions_per_step=10,
-    skip=2,
+    skip=4,
     update_weights_interval=1_000
 )
 
 # agent = DQNAgent.load_from_checkpoint(
-#     '/home/klima7/studies/guzw/vizdoom/logs/version_5/checkpoints/epoch=9680-step=106228.ckpt',
-#     epsilon=0.16,
-#     batch_size=128,
-#     lr=0.0001
+#     '/home/klima7/studies/guzw/vizdoom/logs/version_42/checkpoints/epoch=29206-step=508491.ckpt',
+#     lr=0.001,
+#     epsilon=0.3,
+#     buffer_size=15_000
 # )
 
 logger = TensorBoardLogger(
