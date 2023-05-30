@@ -3,10 +3,8 @@ from pathlib import Path
 import vizdoom as vzd
 
 from lib.dqn import DQNPreprocessGameWrapper
-from lib.wrappers.reward import RewardsDoomWrapper, Rewards
-from lib.wrappers.bots import AddBotsDoomWrapper
-from lib.wrappers.map import SingleMapDoomWrapper
-    
+from lib.wrappers import AddBotsDoomWrapper, SingleMapDoomWrapper, RewardsDoomWrapper, Rewards
+
     
 def setup_game(name='AI', log_rewards=False, window_visible=True):
     game = _create_base_game(name, window_visible)
