@@ -19,30 +19,32 @@ class DQNAgent(LightningModule, Agent):
             n_actions,
             lr=0.001,
             batch_size=32,
-            skip=1,
+            frames_skip=1,
             epsilon=0.5,
             gamma=0.99,
             buffer_size=50_000,
             populate_steps=1_000,
             actions_per_step=10,
-            update_weights_interval=1_000,
+            weights_update_interval=1_000,
+            epsilon_update_interval=200,
+            epsilon_decay=0.99,
+            epsilon_min=0.02,
             validation_interval=100,
     ):
         super().__init__()
         self.save_hyperparameters()
+
         self.model = DQNNetwork(self.hparams.n_actions)
         self.target_model = DQNNetwork(self.hparams.n_actions)
 
-        self.buffer = ReplayBuffer(self.hparams.buffer_size)
-        self.dataset = ReplayDataset(self.buffer, self.hparams.batch_size)
-        self.env = None
-
-        # metrics
-        self.train_metrics = {}
-        self.val_metrics = {}
-
         self.model.eval()
         self.target_model.train()
+
+        self.buffer = ReplayBuffer(self.hparams.buffer_size)
+        self.dataset = ReplayDataset(self.buffer, self.hparams.batch_size)
+
+        self.env = None
+        self.train_metrics = {}
 
     def set_train_environment(self, env):
         self.env = env
@@ -74,7 +76,7 @@ class DQNAgent(LightningModule, Agent):
         action = self.get_action(state)
 
         try:
-            self.env.make_action(action, skip=self.hparams.skip)
+            self.env.make_action(action, skip=self.hparams.frames_skip)
         except (vzd.vizdoom.SignalException, vzd.vizdoom.ViZDoomUnexpectedExitException):
             raise KeyboardInterrupt
 
@@ -121,21 +123,21 @@ class DQNAgent(LightningModule, Agent):
 
     def training_step(self, batch, batch_no):
         for _ in range(self.hparams.actions_per_step):
-            done = self.__play_step(update_buffer=self.global_step % 10 == 0)
+            done = self.__play_step(update_buffer=True)
 
             if done:
                 self.dataset.end_epoch()
-                self.train_metrics = self.__get_metrics(prefix='train_')
+                self.train_metrics = self.env.get_metrics(prefix='train_')
                 self.env.new_episode()
                 break
 
         loss = self.__calculate_loss(batch)
 
-        if self.global_step % self.hparams.update_weights_interval == 0:
+        if self.global_step % self.hparams.weights_update_interval == 0:
             self.__update_weights()
 
-        if self.global_step % 1_000 == 0:
-            self.hparams.epsilon = max(self.hparams.epsilon * 0.99, 0.02)
+        if self.global_step % self.hparams.epsilon_update_interval == 0:
+            self.hparams.epsilon = max(self.hparams.epsilon * self.hparams.epsilon_decay, self.hparams.epsilon_min)
 
         self.log('train_loss', loss),
         self.log('train_epsilon', self.hparams.epsilon),
@@ -168,22 +170,3 @@ class DQNAgent(LightningModule, Agent):
 
         expected_state_action_values = next_state_values * self.hparams.gamma + rewards
         return nn.MSELoss()(state_action_values, expected_state_action_values)
-
-    def __get_metrics(self, prefix=''):
-        return {
-            f'{prefix}total_reward': float(self.env.get_total_reward()),
-            f'{prefix}frags_count': float(self.env.get_frags_count()),
-            f'{prefix}suicides_count': float(self.env.get_suicides_count()),
-            f'{prefix}deaths_count': float(self.env.get_deaths_count()),
-            f'{prefix}hits_made_count': float(self.env.get_hits_made_count()),
-            f'{prefix}hits_taken_count': float(self.env.get_hits_taken_count()),
-            f'{prefix}items_collected_count': float(self.env.get_items_collected_count()),
-            f'{prefix}damage_make_count': float(self.env.get_damage_make_count()),
-            f'{prefix}damage_taken_count': float(self.env.get_damage_taken_count()),
-            f'{prefix}armor_gained_count': float(self.env.get_secrets_count()),
-            f'{prefix}armor_lost_count': float(self.env.get_armor_gained_count()),
-            f'{prefix}health_gained_count': float(self.env.get_armor_lost_count()),
-            f'{prefix}health_lost_count': float(self.env.get_health_gained_count()),
-            f'{prefix}death_tics_count': float(self.env.get_health_lost_count()),
-            f'{prefix}attack_not_ready_tics': float(self.env.get_death_tics_count()),
-        }

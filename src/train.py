@@ -10,15 +10,15 @@ from setup import setup_multiplayer_game
 
 
 agent = DQNAgent(
-    lr=0.0001,
-    n_actions=10,
-    epsilon=0.6,
+    lr=0.0025,
+    n_actions=8,
+    epsilon=0.5,
     populate_steps=1_000,
-    buffer_size=15_000,
-    batch_size=128,
+    buffer_size=80_000,
+    batch_size=64,
     actions_per_step=10,
-    skip=4,
-    update_weights_interval=1_000
+    frames_skip=1,
+    weights_update_interval=1_000
 )
 
 # agent = DQNAgent.load_from_checkpoint(

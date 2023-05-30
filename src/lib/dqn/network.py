@@ -9,24 +9,32 @@ class ConvNetwork(nn.Module):
         super().__init__()
 
         self.net = nn.Sequential(
-            nn.Conv2d(channels[0], channels[1], kernel_size=3, stride=2),
+            nn.Conv2d(channels[0], channels[1], kernel_size=3),
+            nn.BatchNorm2d(channels[1]),
             nn.MaxPool2d(2),
             nn.ReLU(),
 
             nn.Conv2d(channels[1], channels[2], kernel_size=3),
+            nn.BatchNorm2d(channels[2]),
             nn.MaxPool2d(2),
             nn.ReLU(),
 
             nn.Conv2d(channels[2], channels[3], kernel_size=3),
+            nn.BatchNorm2d(channels[3]),
             nn.MaxPool2d(2),
             nn.ReLU(),
 
             nn.Conv2d(channels[3], channels[4], kernel_size=3),
+            nn.BatchNorm2d(channels[4]),
             nn.MaxPool2d(2),
             nn.ReLU(),
 
+            nn.Conv2d(channels[4], channels[5], kernel_size=3),
+            nn.BatchNorm2d(channels[5]),
+            nn.ReLU(),
+
             nn.Flatten(),
-            nn.Dropout(0.5),
+            # nn.Dropout(0.5),
         )
 
     def forward(self, image):
@@ -39,24 +47,24 @@ class NeckNetwork(nn.Module):
         super().__init__()
 
         self.l1 = nn.Linear(3072, 1024)
-        self.d1 = nn.Dropout(0.5)
+        # self.d1 = nn.Dropout(0.5)
         self.r1 = nn.ReLU()
 
         self.l2 = nn.Linear(1024+2, 512)
-        self.d2 = nn.Dropout(0.5)
+        # self.d2 = nn.Dropout(0.5)
         self.r2 = nn.ReLU()
 
         self.l3 = nn.Linear(512, n_actions)
 
     def forward(self, screen, variables):
         out = self.l1(screen)
-        out = self.d1(out)
+        # out = self.d1(out)
         out = self.r1(out)
 
         out = torch.cat([out, variables], dim=1)
 
         out = self.l2(out)
-        out = self.d2(out)
+        # out = self.d2(out)
         out = self.r2(out)
 
         out = self.l3(out)
@@ -69,7 +77,7 @@ class DQNNetwork(nn.Module):
     def __init__(self, n_actions):
         super().__init__()
 
-        self.screen_net = ConvNetwork([3, 64, 128, 256, 1024])
+        self.screen_net = ConvNetwork([2, 32, 64, 128, 256, 1024])
         self.neck_net = NeckNetwork(n_actions)
 
     def forward(self, data):

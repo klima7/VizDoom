@@ -40,7 +40,7 @@ def _create_game(name, window_visible=False):
     
     game.add_game_args(f'+name {name}')
     game.set_window_visible(window_visible)
-    game.set_screen_resolution(vzd.ScreenResolution.RES_160X120)
+    game.set_screen_resolution(vzd.ScreenResolution.RES_640X480)
     game.set_screen_format(vzd.ScreenFormat.GRAY8)
     game.set_console_enabled(False)
     return game

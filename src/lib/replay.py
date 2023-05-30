@@ -37,7 +37,10 @@ class ReplayDataset(IterableDataset):
         
     def __iter__(self):
         while not self.__end_epoch:
-            yield self.replay.sample()
+            sample = self.replay.sample()
+            sample[0]['screen'] = sample[0]['screen'].astype(np.float32) / 255
+            sample[3]['screen'] = sample[3]['screen'].astype(np.float32) / 255
+            yield sample
         self.__end_epoch = False
 
     def end_epoch(self):
