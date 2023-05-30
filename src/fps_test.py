@@ -1,10 +1,10 @@
 from time import time
 import tqdm
-from setup import setup_multiplayer_game
+from setup import setup_game
 
 
 def test_fps(iterations):
-    game = setup_multiplayer_game()
+    game = setup_game()
     game.init()
     start = time()
 

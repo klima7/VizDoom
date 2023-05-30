@@ -17,7 +17,7 @@ def setup_game(name='AI', log_rewards=False, window_visible=True):
 def _create_base_game(name, window_visible=False):
     game = vzd.DoomGame()
     
-    game.load_config(str(Path(__file__).parent.parent / 'scenarios' / 'multi.cfg'))
+    game.load_config(str(Path(__file__).parent.parent.parent / 'scenarios' / 'multi.cfg'))
     game.set_mode(vzd.Mode.PLAYER)
     game.add_game_args('-deathmatch')
     game.set_episode_timeout(3000)
