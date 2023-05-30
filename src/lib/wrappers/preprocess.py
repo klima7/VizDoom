@@ -3,7 +3,7 @@ import vizdoom as vzd
 import cv2
 
 
-class DQNPreprocessGameWrapper:
+class PreprocessGameWrapper:
     # BulletPuff, DoomPlayer, TeleportFog, Blood
     SCREEN_SIZE = (120, 80)  # width, height
 

@@ -2,9 +2,8 @@ from pathlib import Path
 
 import vizdoom as vzd
 
-from lib.dqn import DQNPreprocessGameWrapper
 from lib.wrappers import FinishEpisodeOnDeathDoomWrapper, AddBotsDoomWrapper, SingleMapDoomWrapper, \
-    RewardsDoomWrapper, Rewards
+    RewardsDoomWrapper, Rewards, PreprocessGameWrapper
 
     
 def setup_game(name='AI', log_rewards=False, window_visible=True):
@@ -58,5 +57,5 @@ def _apply_game_wrappers(game, log_rewards):
     game = SingleMapDoomWrapper(game, map='map01')
     game = AddBotsDoomWrapper(game, bots_count=4)
     game = FinishEpisodeOnDeathDoomWrapper(game)
-    game = DQNPreprocessGameWrapper(game)
+    game = PreprocessGameWrapper(game)
     return game

@@ -2,8 +2,7 @@ from pathlib import Path
 
 import vizdoom as vzd
 
-from lib.dqn import DQNPreprocessGameWrapper
-from lib.wrappers import RewardsDoomWrapper, Rewards
+from lib.wrappers import RewardsDoomWrapper, Rewards, PreprocessGameWrapper
 
 
 def setup_game(name='AI', log_rewards=False, window_visible=True):
@@ -34,5 +33,5 @@ def _apply_game_wrappers(game, log_rewards):
         hit_reward=100,
     )
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
-    game = DQNPreprocessGameWrapper(game)
+    game = PreprocessGameWrapper(game)
     return game
