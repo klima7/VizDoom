@@ -17,14 +17,20 @@ agent = DQNAgent(
     n_actions=game.get_available_buttons_size(),
     screen_size=game.get_screen_size(),
     n_variables=game.get_variables_size(),
+
     lr=0.00025,
-    epsilon=0.5,
-    populate_steps=1_00,
-    buffer_size=80_000,
     batch_size=64,
+
+    gamma=0.99,
+    epsilon=0.7,
+    populate_steps=1_000,
+    buffer_size=80_000,
     actions_per_step=10,
     frames_skip=12,
-    weights_update_interval=1_000
+    weights_update_interval=1_000,
+
+    epsilon_update_interval=2_000,
+    epsilon_min=0.1,
 )
 
 # agent = DQNAgent.load_from_checkpoint(
