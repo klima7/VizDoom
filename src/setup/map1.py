@@ -53,9 +53,23 @@ def _apply_game_wrappers(game, log_rewards):
         damage_reward=1,
         damage_penalty=0.2,
     )
+
+    labels = []
+
+    variables = {
+        vzd.GameVariable.HEALTH: slice(0, 15),
+        vzd.GameVariable.AMMO4: slice(0, 50),
+    }
+
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
     game = SingleMapDoomWrapper(game, map='map01')
     game = AddBotsDoomWrapper(game, bots_count=4)
     game = FinishEpisodeOnDeathDoomWrapper(game)
-    game = PreprocessGameWrapper(game)
+    game = PreprocessGameWrapper(
+        game,
+        screen_size=(120, 80),
+        labels=labels,
+        variables=variables,
+        depth=True
+    )
     return game
