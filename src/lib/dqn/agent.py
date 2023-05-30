@@ -17,6 +17,8 @@ class DQNAgent(LightningModule, Agent):
     def __init__(
             self,
             n_actions,
+            screen_size,
+            n_variables,
             lr=0.001,
             batch_size=32,
             frames_skip=1,
@@ -34,8 +36,8 @@ class DQNAgent(LightningModule, Agent):
         super().__init__()
         self.save_hyperparameters()
 
-        self.model = DQNNetwork(self.hparams.n_actions)
-        self.target_model = DQNNetwork(self.hparams.n_actions)
+        self.model = DQNNetwork(self.hparams.n_actions, self.hparams.screen_size, self.hparams.n_variables)
+        self.target_model = DQNNetwork(self.hparams.n_actions, self.hparams.screen_size, self.hparams.n_variables)
 
         self.model.eval()
         self.target_model.train()

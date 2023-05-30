@@ -9,15 +9,21 @@ from lib.dqn import DQNAgent
 from setup import setup_game
 
 
+warnings.filterwarnings("ignore", ".*train_dataloader, does not have many workers.*")
+
+game = setup_game()
+
 agent = DQNAgent(
-    lr=0.0025,
-    n_actions=8,
+    n_actions=game.get_available_buttons_size(),
+    screen_size=game.get_screen_size(),
+    n_variables=game.get_variables_size(),
+    lr=0.00025,
     epsilon=0.5,
     populate_steps=1_00,
     buffer_size=80_000,
     batch_size=64,
     actions_per_step=10,
-    frames_skip=1,
+    frames_skip=12,
     weights_update_interval=1_000
 )
 
@@ -51,9 +57,6 @@ trainer = Trainer(
     logger=logger,
     # profiler=advanced_profiler
 )
-    
-warnings.filterwarnings("ignore", ".*train_dataloader, does not have many workers.*")
 
-game = setup_game()
 agent.set_train_environment(game)
 trainer.fit(agent)
