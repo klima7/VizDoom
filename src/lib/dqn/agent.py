@@ -68,32 +68,6 @@ class DQNAgent(LightningModule, Agent):
         best_action_vec = self.__get_action_vec(best_action_idx)
         return best_action_vec
 
-    def __update_weights(self):
-        self.model.load_state_dict(self.target_model.state_dict())
-
-    def __play_step(self, update_buffer=True):
-        state = self.env.get_state()
-        action = self.get_action(state)
-
-        try:
-            self.env.make_action(action, skip=self.hparams.frames_skip)
-        except (vzd.vizdoom.SignalException, vzd.vizdoom.ViZDoomUnexpectedExitException):
-            raise KeyboardInterrupt
-
-        done = self.env.is_episode_finished()
-
-        if update_buffer:
-            reward = self.env.get_last_reward()
-            next_state = self.env.get_state()
-            self.buffer.add(state, action, reward, next_state, done)
-
-        return done
-
-    def __get_action_vec(self, action_idx):
-        action_vector = [0] * self.hparams.n_actions
-        action_vector[action_idx] = 1
-        return action_vector
-
     def on_fit_start(self):
         self.env.init()
         self.__populate_buffer()
@@ -114,12 +88,16 @@ class DQNAgent(LightningModule, Agent):
     #     self.val_metrics = self.__get_metrics(prefix='val_')
     #     self.env.new_episode()
 
-    def __populate_buffer(self):
-        while len(self.buffer) < self.hparams.populate_steps:
-            done = self.__play_step()
-            if done:
-                self.env.new_episode()
-        self.env.new_episode()
+    def configure_optimizers(self):
+        optimizer = Adam(self.target_model.parameters(), lr=self.hparams.lr)
+        return optimizer
+
+    def train_dataloader(self):
+        dataloader = DataLoader(
+            dataset=self.dataset,
+            batch_size=self.hparams.batch_size,
+        )
+        return dataloader
 
     def training_step(self, batch, batch_no):
         for _ in range(self.hparams.actions_per_step):
@@ -145,16 +123,23 @@ class DQNAgent(LightningModule, Agent):
         self.log_dict(self.train_metrics)
         return loss
 
-    def configure_optimizers(self):
-        optimizer = Adam(self.target_model.parameters(), lr=self.hparams.lr)
-        return optimizer
+    def __play_step(self, update_buffer=True):
+        state = self.env.get_state()
+        action = self.get_action(state)
 
-    def train_dataloader(self):
-        dataloader = DataLoader(
-            dataset=self.dataset,
-            batch_size=self.hparams.batch_size,
-        )
-        return dataloader
+        try:
+            self.env.make_action(action, skip=self.hparams.frames_skip)
+        except (vzd.vizdoom.SignalException, vzd.vizdoom.ViZDoomUnexpectedExitException):
+            raise KeyboardInterrupt
+
+        done = self.env.is_episode_finished()
+
+        if update_buffer:
+            reward = self.env.get_last_reward()
+            next_state = self.env.get_state()
+            self.buffer.add(state, action, reward, next_state, done)
+
+        return done
 
     def __calculate_loss(self, batch):
         states, actions, rewards, next_states, dones = batch
@@ -169,3 +154,18 @@ class DQNAgent(LightningModule, Agent):
 
         expected_state_action_values = next_state_values * self.hparams.gamma + rewards
         return nn.MSELoss()(state_action_values, expected_state_action_values)
+
+    def __update_weights(self):
+        self.model.load_state_dict(self.target_model.state_dict())
+
+    def __populate_buffer(self):
+        while len(self.buffer) < self.hparams.populate_steps:
+            done = self.__play_step()
+            if done:
+                self.env.new_episode()
+        self.env.new_episode()
+
+    def __get_action_vec(self, action_idx):
+        action_vector = [0] * self.hparams.n_actions
+        action_vector[action_idx] = 1
+        return action_vector
