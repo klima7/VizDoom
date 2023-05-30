@@ -3,9 +3,9 @@ from pathlib import Path
 import vizdoom as vzd
 
 from lib.dqn import DQNPreprocessGameWrapper
-from lib.reward import RewardsDoomWrapper, Rewards
-from lib.bots import AddBotsDoomWrapper
-from lib.stick import StickToMapDoomWrapper
+from lib.wrappers.reward import RewardsDoomWrapper, Rewards
+from lib.wrappers.bots import AddBotsDoomWrapper
+from lib.wrappers.stick import StickToMapDoomWrapper
     
     
 def setup_multiplayer_game(log_rewards=False):

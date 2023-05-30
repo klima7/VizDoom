@@ -143,7 +143,6 @@ class DQNAgent(LightningModule, Agent):
         self.log('train_epsilon', self.hparams.epsilon),
         self.log('train_buffer_size', float(len(self.buffer)))
         self.log_dict(self.train_metrics)
-        self.log_dict(self.val_metrics)
         return loss
 
     def configure_optimizers(self):
