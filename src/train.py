@@ -6,7 +6,7 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.profilers import SimpleProfiler, AdvancedProfiler
 
 from lib.dqn import DQNAgent
-from setup import setup_multiplayer_game
+from setup import setup_game
 
 
 agent = DQNAgent(
@@ -54,6 +54,6 @@ trainer = Trainer(
     
 warnings.filterwarnings("ignore", ".*train_dataloader, does not have many workers.*")
 
-game = setup_multiplayer_game()
+game = setup_game()
 agent.set_train_environment(game)
 trainer.fit(agent)

@@ -5,15 +5,16 @@ import vizdoom as vzd
 from lib.dqn import DQNPreprocessGameWrapper
 from lib.wrappers.reward import RewardsDoomWrapper, Rewards
 from lib.wrappers.bots import AddBotsDoomWrapper
-from lib.wrappers.stick import StickToMapDoomWrapper
+from lib.wrappers.map import SingleMapDoomWrapper
     
     
-def setup_multiplayer_game(log_rewards=False):
-    game = _apply_game_wrappers(_create_game(name='AI', window_visible=True), log_rewards=log_rewards)
+def setup_game(name='AI', log_rewards=False, window_visible=True):
+    game = _create_base_game(name, window_visible)
+    game = _apply_game_wrappers(game, log_rewards=log_rewards)
     return game
 
 
-def _create_game(name, window_visible=False):
+def _create_base_game(name, window_visible=False):
     game = vzd.DoomGame()
     
     game.load_config(str(Path(__file__).parent.parent / 'scenarios' / 'multi.cfg'))
@@ -49,14 +50,13 @@ def _create_game(name, window_visible=False):
 def _apply_game_wrappers(game, log_rewards):
     rewards = Rewards(
         kill_reward=20,
-        # single_death_penalty=50,
         hit_reward=5,
         hit_penalty=1,
         damage_reward=1,
         damage_penalty=0.2,
     )
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
-    game = StickToMapDoomWrapper(game, map='map01')
+    game = SingleMapDoomWrapper(game, map='map01')
     game = AddBotsDoomWrapper(game, bots_count=4)
     game = DQNPreprocessGameWrapper(game)
     return game

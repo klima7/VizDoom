@@ -1,4 +1,4 @@
-class StickToMapDoomWrapper:
+class SingleMapDoomWrapper:
 
     def __init__(self, game, map):
         self.game = game
