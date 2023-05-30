@@ -17,9 +17,6 @@ while True:
         for i, label_name in enumerate(DQNPreprocessGameWrapper.IMPORTANT_LABELS):
             cv2.imshow(f'Label {label_name}', state['screen'][2+i])
         cv2.waitKey(1)
-        
-        if game.is_player_dead():
-            game.respawn_player()
 
         game.advance_action()
 

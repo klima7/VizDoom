@@ -80,7 +80,7 @@ class DQNAgent(LightningModule, Agent):
         except (vzd.vizdoom.SignalException, vzd.vizdoom.ViZDoomUnexpectedExitException):
             raise KeyboardInterrupt
 
-        done = self.env.is_episode_finished() or self.env.is_player_dead()
+        done = self.env.is_episode_finished()
 
         if update_buffer:
             reward = self.env.get_last_reward()
