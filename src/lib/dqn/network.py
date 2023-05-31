@@ -24,15 +24,6 @@ class ConvNetwork(nn.Module):
             nn.MaxPool2d(2),
             nn.ReLU(),
 
-            nn.Conv2d(channels[3], channels[4], kernel_size=3),
-            nn.BatchNorm2d(channels[4]),
-            nn.MaxPool2d(2),
-            nn.ReLU(),
-
-            nn.Conv2d(channels[4], channels[5], kernel_size=3),
-            nn.BatchNorm2d(channels[5]),
-            nn.ReLU(),
-
             nn.Flatten(),
         )
 
@@ -45,13 +36,13 @@ class NeckNetwork(nn.Module):
     def __init__(self, n_actions, n_variables):
         super().__init__()
 
-        self.l1 = nn.Linear(3072, 1024)
+        self.l1 = nn.Linear(768, 512)
         self.r1 = nn.ReLU()
 
-        self.l2 = nn.Linear(1024+n_variables, 512)
+        self.l2 = nn.Linear(512+n_variables, 256)
         self.r2 = nn.ReLU()
 
-        self.l3 = nn.Linear(512, n_actions)
+        self.l3 = nn.Linear(256, n_actions)
 
     def forward(self, screen, variables):
         out = self.l1(screen)
@@ -71,7 +62,7 @@ class DQNNetwork(nn.Module):
     def __init__(self, n_actions, screen_size, n_variables):
         super().__init__()
 
-        self.screen_net = ConvNetwork(screen_size, [2, 32, 64, 128, 256, 1024])
+        self.screen_net = ConvNetwork(screen_size, [2, 32, 64, 128])
         self.neck_net = NeckNetwork(n_actions, n_variables)
 
     def forward(self, data):

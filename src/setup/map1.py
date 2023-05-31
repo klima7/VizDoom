@@ -67,7 +67,7 @@ def _apply_game_wrappers(game, log_rewards):
     game = FinishEpisodeOnDeathDoomWrapper(game)
     game = PreprocessGameWrapper(
         game,
-        screen_size=(120, 80),
+        screen_size=(40, 30),
         labels=labels,
         variables=variables,
         depth=True
