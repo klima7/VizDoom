@@ -2,7 +2,7 @@ from pathlib import Path
 
 import vizdoom as vzd
 
-from lib.wrappers import FinishEpisodeOnDeathDoomWrapper, AddBotsDoomWrapper, SingleMapDoomWrapper, \
+from lib.wrappers import AddBotsDoomWrapper, \
     RewardsDoomWrapper, Rewards, PreprocessGameWrapper
 
     
@@ -16,17 +16,25 @@ def _create_base_game(name, window_visible=False):
     game = vzd.DoomGame()
     
     game.load_config(str(Path(__file__).parent.parent.parent / 'scenarios' / 'multi.cfg'))
+    game.set_doom_map("map01")
     game.set_mode(vzd.Mode.PLAYER)
-    game.add_game_args('-deathmatch')
-    game.set_episode_timeout(3000)
-    
+    game.add_game_args('-deathmatch ')
+    game.add_game_args('+sv_forcerespawn 1 ')
+    game.add_game_args('+sv_noautoaim 1 ')
+    game.add_game_args('+sv_respawnprotect 1 ')
+    game.add_game_args('+sv_spawnfarthest 1 ')
+    game.add_game_args('+sv_nocrouch 1 ')
+    game.add_game_args('+viz_nocheat 1 ')
+    game.add_game_args('+sv_respawnprotect 1 ')
+    game.add_game_args('+viz_respawn_delay 0 ')
+    game.add_game_args('+sv_noexit 1 ')
+    game.add_game_args('+sv_samelevel 1 ')
+    game.add_game_args('+alwaysapplydmflags 1 ')
+    game.set_episode_timeout(4000)
+
     game.set_depth_buffer_enabled(True)
     game.set_labels_buffer_enabled(True)
-    
-    # game.set_automap_buffer_enabled(True)
-    # game.set_automap_mode(vzd.AutomapMode.OBJECTS)
-    # game.set_automap_rotate(True)
-    # game.set_automap_render_textures(False)
+    game.set_doom_skill(3)
 
     game.set_render_hud(True)
     game.set_render_minimal_hud(True)
@@ -47,7 +55,7 @@ def _create_base_game(name, window_visible=False):
 
 def _apply_game_wrappers(game, log_rewards):
     rewards = Rewards(
-        single_death_penalty=10,
+        single_death_penalty=20,
         hit_reward=2,
         hit_penalty=1,
         damage_reward=1,
@@ -62,9 +70,7 @@ def _apply_game_wrappers(game, log_rewards):
     }
 
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
-    game = SingleMapDoomWrapper(game, map='map01')
-    game = AddBotsDoomWrapper(game, bots_count=4)
-    game = FinishEpisodeOnDeathDoomWrapper(game)
+    game = AddBotsDoomWrapper(game, bots_count=3)
     game = PreprocessGameWrapper(
         game,
         screen_size=(40, 30),
