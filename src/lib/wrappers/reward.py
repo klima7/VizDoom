@@ -289,12 +289,12 @@ class RewardsDoomWrapper:
             f'{prefix}items_collected_count': float(self.get_items_collected_count()),
             f'{prefix}damage_make_count': float(self.get_damage_make_count()),
             f'{prefix}damage_taken_count': float(self.get_damage_taken_count()),
-            f'{prefix}armor_gained_count': float(self.get_secrets_count()),
-            f'{prefix}armor_lost_count': float(self.get_armor_gained_count()),
-            f'{prefix}health_gained_count': float(self.get_armor_lost_count()),
-            f'{prefix}health_lost_count': float(self.get_health_gained_count()),
-            f'{prefix}death_tics_count': float(self.get_health_lost_count()),
-            f'{prefix}attack_not_ready_tics': float(self.get_death_tics_count()),
+            f'{prefix}armor_gained_count': float(self.get_armor_gained_count()),
+            f'{prefix}armor_lost_count': float(self.get_armor_lost_count()),
+            f'{prefix}health_gained_count': float(self.get_health_gained_count()),
+            f'{prefix}health_lost_count': float(self.get_health_lost_count()),
+            f'{prefix}death_tics_count': float(self.get_death_tics_count()),
+            f'{prefix}attack_not_ready_tics': float(self.get_attack_not_ready_tics_count()),
         }
         
     def __log_last_rewards(self):
