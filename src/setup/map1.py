@@ -28,14 +28,14 @@ def _create_base_game(name, window_visible=False):
     # game.set_automap_rotate(True)
     # game.set_automap_render_textures(False)
 
-    game.set_render_hud(False)
+    game.set_render_hud(True)
     game.set_render_minimal_hud(True)
     game.set_render_particles(False)
     game.set_render_decals(False)
     game.set_render_messages(False)
     game.set_render_corpses(False)
     game.set_render_screen_flashes(False)
-    game.set_render_weapon(False)
+    game.set_render_weapon(True)
     
     game.add_game_args(f'+name {name}')
     game.set_window_visible(window_visible)
