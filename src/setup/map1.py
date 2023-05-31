@@ -60,6 +60,7 @@ def _apply_game_wrappers(game, log_rewards):
         hit_penalty=1,
         damage_reward=1,
         damage_penalty=1,
+        ammo_penalty=1,
     )
 
     labels = []

@@ -22,7 +22,7 @@ class VarTracker(ABC):
         self._positive_count = 0
         self._negative_count = 0
     
-    def update(self):
+    def update(self, respawned=False):
         pass
     
     def get_name(self):
@@ -62,7 +62,11 @@ class NumVarTracker(VarTracker):
             super().reset()
             self.__last_value = self._get_variable_value()
             
-        def update(self):
+        def update(self, respawned=False):
+            if respawned:
+                self.__last_value = self._get_variable_value()
+                return
+
             current_value = self._get_variable_value()
             diff = current_value - self.__last_value
             
@@ -86,9 +90,9 @@ class BoolVarTracker(VarTracker):
         self.__false_reward = false_reward
         
     def get_name(self):
-            return f'bool_{self._var}'
+        return f'bool_{self._var}'
         
-    def update(self):
+    def update(self, death=False):
         value = self._get_variable_value()
         self._last_reward = self.__true_reward if value else self.__false_reward
         self._total_reward += self._last_reward
@@ -108,16 +112,16 @@ class VarTrackersGroup:
         for var_reward in self.var_rewards:
             var_reward.reset()
          
-    def update(self):
+    def update(self, respawned=False):
         for var_reward in self.var_rewards:
-            var_reward.update()
+            var_reward.update(respawned)
             
     def get_last_reward(self):
         last_rewards = [var_reward.get_last_reward() for var_reward in self.var_rewards]
         return sum(last_rewards)
     
     def get_last_reward_dict(self):
-        last_rewards = { var_reward.get_name(): var_reward.get_last_reward() for var_reward in self.var_rewards }
+        last_rewards = {var_reward.get_name(): var_reward.get_last_reward() for var_reward in self.var_rewards}
         return last_rewards
     
     def get_total_reward(self):
@@ -172,7 +176,7 @@ class RewardsDoomWrapper:
                           vzd.GameVariable.AMMO6, vzd.GameVariable.AMMO7, vzd.GameVariable.AMMO8,
                           vzd.GameVariable.AMMO0]
         self.__ammo_trackers = [
-            NumVarTracker(self, ammo_variable, rewards.ammo_penalty, rewards.ammo_reward)
+            NumVarTracker(self, ammo_variable, -rewards.ammo_penalty, rewards.ammo_reward)
             for ammo_variable in ammo_variables
         ]
 
@@ -194,26 +198,29 @@ class RewardsDoomWrapper:
         ])
 
         self.__log = log
+
+        self.__last_dead = False
         
     def __getattr__(self, attr):
         return getattr(self.game, attr)
 
+    def init(self):
+        self.game.init()
+        self.__trackers.reset()
+        self.__last_dead = False
+
     def new_episode(self, *args, **kwargs):
         self.game.new_episode(*args, **kwargs)
+        self.__last_dead = False
         self.__trackers.reset()
     
     def make_action(self, action, skip=1):
         self.game.make_action(action, skip)
-        self.refresh_reward()
+        self.__refresh_reward()
         
     def advance_action(self, tics=1, update_state=True):
         self.game.advance_action(tics, update_state)
-        self.refresh_reward()
-
-    def refresh_reward(self):
-        self.__trackers.update()
-        if self.__log:
-            self.__log_last_rewards()
+        self.__refresh_reward()
 
     def get_last_reward(self):
         return self.__trackers.get_last_reward()
@@ -296,9 +303,17 @@ class RewardsDoomWrapper:
             f'{prefix}death_tics_count': float(self.get_death_tics_count()),
             f'{prefix}attack_not_ready_tics': float(self.get_attack_not_ready_tics_count()),
         }
-        
+
+    def __refresh_reward(self):
+        is_dead = bool(self.game.get_game_variable(vzd.GameVariable.DEAD))
+        respawned = self.__last_dead and not is_dead
+        self.__last_dead = is_dead
+        self.__trackers.update(respawned=respawned)
+        if self.__log:
+            self.__log_last_rewards()
+
     def __log_last_rewards(self):
         rewards_dict = self.__trackers.get_last_reward_dict()
-        rewards_dict = { name: reward for name, reward in rewards_dict.items() if reward != 0 }
+        rewards_dict = {name: reward for name, reward in rewards_dict.items() if reward != 0}
         if rewards_dict:
             print('Rewards:', rewards_dict)
