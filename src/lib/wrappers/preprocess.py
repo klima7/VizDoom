@@ -23,7 +23,7 @@ class PreprocessGameWrapper:
         self.__available_variables = self.game.get_available_game_variables()
 
     def get_screen_size(self):
-        channels = 1 + 1 + len(self.__labels)
+        channels = 1 + int(self.__depth) + len(self.__labels)
         return channels, self.__screen_size[1], self.__screen_size[0]
 
     def get_variables_size(self):

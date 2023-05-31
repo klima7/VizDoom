@@ -70,6 +70,6 @@ def _apply_game_wrappers(game, log_rewards):
         screen_size=(40, 30),
         labels=labels,
         variables=variables,
-        depth=True
+        depth=False
     )
     return game
