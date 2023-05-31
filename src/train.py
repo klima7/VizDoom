@@ -19,7 +19,7 @@ agent = DQNAgent(
     n_variables=game.get_variables_size(),
 
     lr=0.00025,
-    batch_size=256,
+    batch_size=64,
 
     gamma=0.99,
     epsilon=0.7,
