@@ -1,9 +1,10 @@
 import warnings
 from pathlib import Path
 
-from pytorch_lightning import Trainer
+from lightning.pytorch import Trainer
 from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.profilers import SimpleProfiler, AdvancedProfiler
+from lightning.pytorch.callbacks import ModelCheckpoint
 
 from lib.dqn import DQNAgent
 from setup import setup_game
@@ -19,7 +20,7 @@ agent = DQNAgent(
     n_variables=game.get_variables_size(),
 
     lr=0.00025,
-    batch_size=64,
+    batch_size=256,
 
     gamma=0.99,
     epsilon=0.7,
@@ -27,7 +28,7 @@ agent = DQNAgent(
     buffer_size=60_000,
     actions_per_step=10,
     frames_skip=3,
-    validation_interval=50,
+    validation_interval=1,
     weights_update_interval=1_000,
 
     epsilon_update_interval=2_000,
@@ -35,10 +36,7 @@ agent = DQNAgent(
 )
 
 # agent = DQNAgent.load_from_checkpoint(
-#     '/home/klima7/studies/guzw/vizdoom/logs/version_42/checkpoints/epoch=29206-step=508491.ckpt',
-#     lr=0.001,
-#     epsilon=0.3,
-#     buffer_size=15_000
+#     '../logs/version_42/checkpoints/last.ckpt',
 # )
 
 logger = TensorBoardLogger(
@@ -57,11 +55,21 @@ advanced_profiler = AdvancedProfiler(
     filename='advanced',
 )
 
+checkpoint_checkpoint = ModelCheckpoint(
+    filename='best-{val_total_reward:.2f}',
+    monitor='val_total_reward',
+    mode='max',
+    save_last=True,
+    save_top_k=5,
+    save_on_train_epoch_end=True,
+)
+
 trainer = Trainer(
     accelerator='cuda',
     max_epochs=-1,
     enable_progress_bar=True,
     logger=logger,
+    callbacks=[checkpoint_checkpoint],
     # profiler=advanced_profiler
 )
 

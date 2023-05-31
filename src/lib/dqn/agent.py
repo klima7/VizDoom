@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader
-from pytorch_lightning import LightningModule
+from lightning.pytorch import LightningModule
 import vizdoom as vzd
 
 from .network import DQNNetwork
