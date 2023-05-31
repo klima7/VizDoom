@@ -27,11 +27,11 @@ class DQNAgent(LightningModule, Agent):
             buffer_size=50_000,
             populate_steps=1_000,
             actions_per_step=10,
+            validation_interval=10,
             weights_update_interval=1_000,
             epsilon_update_interval=200,
             epsilon_decay=0.99,
             epsilon_min=0.02,
-            validation_interval=100,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -47,6 +47,7 @@ class DQNAgent(LightningModule, Agent):
 
         self.env = None
         self.train_metrics = {}
+        self.val_metrics = {}
 
     def set_train_environment(self, env):
         self.env = env
@@ -89,6 +90,10 @@ class DQNAgent(LightningModule, Agent):
     def on_fit_end(self):
         self.env.close()
 
+    def on_train_epoch_end(self):
+        if self.current_epoch % self.hparams.validation_interval == 0:
+            self.__validate()
+
     def on_train_batch_start(self, batch, batch_idx):
         for _ in range(self.hparams.actions_per_step):
             done = self.__play_step(update_buffer=True)
@@ -110,6 +115,7 @@ class DQNAgent(LightningModule, Agent):
         self.log('train_epsilon', self.hparams.epsilon),
         self.log('train_buffer_size', float(len(self.buffer)))
         self.log_dict(self.train_metrics)
+        self.log_dict(self.val_metrics)
         return loss
 
     def __play_step(self, update_buffer=True):
@@ -152,6 +158,14 @@ class DQNAgent(LightningModule, Agent):
             done = self.__play_step()
             if done:
                 self.env.new_episode()
+
+    def __validate(self):
+        self.env.new_episode()
+        while not self.env.is_episode_finished():
+            state = self.env.get_state()
+            action = self.get_action(state, epsilon=0)
+            self.env.make_action(action)
+        self.val_metrics = self.env.get_metrics(prefix='val_')
 
     def __get_action_vec(self, action_idx):
         action_vector = [0] * self.hparams.n_actions
