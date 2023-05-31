@@ -285,23 +285,31 @@ class RewardsDoomWrapper:
     def get_altattack_not_ready_tics_count(self):
         return self.__altattack_ready_tracker.get_negative_count()
 
+    def get_ammo_shot_count(self):
+        return sum([tracker.get_negative_count() for tracker in self.__ammo_trackers])
+
+    def get_ammo_collected_count(self):
+        return sum([tracker.get_positive_count() for tracker in self.__ammo_trackers])
+
     def get_metrics(self, prefix=''):
         return {
             f'{prefix}total_reward': float(self.get_total_reward()),
             f'{prefix}frags_count': float(self.get_frags_count()),
-            f'{prefix}suicides_count': float(self.get_suicides_count()),
+            # f'{prefix}suicides_count': float(self.get_suicides_count()),
             f'{prefix}deaths_count': float(self.get_deaths_count()),
             f'{prefix}hits_made_count': float(self.get_hits_made_count()),
             f'{prefix}hits_taken_count': float(self.get_hits_taken_count()),
-            f'{prefix}items_collected_count': float(self.get_items_collected_count()),
+            # f'{prefix}items_collected_count': float(self.get_items_collected_count()),
             f'{prefix}damage_make_count': float(self.get_damage_make_count()),
             f'{prefix}damage_taken_count': float(self.get_damage_taken_count()),
-            f'{prefix}armor_gained_count': float(self.get_armor_gained_count()),
-            f'{prefix}armor_lost_count': float(self.get_armor_lost_count()),
-            f'{prefix}health_gained_count': float(self.get_health_gained_count()),
-            f'{prefix}health_lost_count': float(self.get_health_lost_count()),
-            f'{prefix}death_tics_count': float(self.get_death_tics_count()),
+            # f'{prefix}armor_gained_count': float(self.get_armor_gained_count()),
+            # f'{prefix}armor_lost_count': float(self.get_armor_lost_count()),
+            # f'{prefix}health_gained_count': float(self.get_health_gained_count()),
+            # f'{prefix}health_lost_count': float(self.get_health_lost_count()),
+            # f'{prefix}death_tics_count': float(self.get_death_tics_count()),
             f'{prefix}attack_not_ready_tics': float(self.get_attack_not_ready_tics_count()),
+            f'{prefix}ammo_shot_count': float(self.get_ammo_shot_count()),
+            # f'{prefix}ammo_collected_count': float(self.get_ammo_collected_count()),
         }
 
     def __refresh_reward(self):
