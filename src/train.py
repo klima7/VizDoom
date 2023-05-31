@@ -23,13 +23,13 @@ agent = DQNAgent(
 
     gamma=0.99,
     epsilon=0.7,
-    populate_steps=1_00,
-    buffer_size=80_000,
+    populate_steps=1_000,
+    buffer_size=60_000,
     actions_per_step=10,
     frames_skip=3,
     weights_update_interval=1_000,
 
-    epsilon_update_interval=2_000,
+    epsilon_update_interval=2_100,
     epsilon_min=0.1,
 )
 
