@@ -18,7 +18,7 @@ agent = DQNAgent(
     screen_size=game.get_screen_size(),
     n_variables=game.get_variables_size(),
 
-    lr=0.001,
+    lr=0.00025,
     batch_size=64,
 
     gamma=0.99,
