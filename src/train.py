@@ -24,9 +24,9 @@ agent = DQNAgent(
     gamma=0.99,
     epsilon=0.7,
     populate_steps=1_00,
-    buffer_size=60_000,
+    buffer_size=100_000,
     actions_per_step=10,
-    frames_skip=12,
+    frames_skip=1,
     validation_interval=50,
     weights_update_interval=1_000,
 
