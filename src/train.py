@@ -30,8 +30,8 @@ agent = DQNAgent(
     validation_interval=50,
     weights_update_interval=1_000,
 
-    epsilon_update_interval=2_100,
-    epsilon_min=0.1,
+    epsilon_update_interval=2_000,
+    epsilon_min=0.05,
 )
 
 # agent = DQNAgent.load_from_checkpoint(
