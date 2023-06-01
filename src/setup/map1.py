@@ -31,14 +31,12 @@ def _create_base_game(name, window_visible=False):
     game.add_game_args('+sv_noexit 1 ')
     game.add_game_args('+sv_samelevel 1 ')
     game.add_game_args('+alwaysapplydmflags 1 ')
-    game.set_episode_timeout(4000)
 
-    game.set_depth_buffer_enabled(True)
-    game.set_labels_buffer_enabled(True)
+    game.set_episode_timeout(2000)
     game.set_doom_skill(3)
 
     game.set_render_hud(True)
-    game.set_render_minimal_hud(True)
+    game.set_render_minimal_hud(False)
     game.set_render_particles(False)
     game.set_render_decals(False)
     game.set_render_messages(False)
