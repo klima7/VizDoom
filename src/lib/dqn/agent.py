@@ -36,11 +36,12 @@ class DQNAgent(LightningModule, Agent):
         super().__init__()
         self.save_hyperparameters()
 
-        self.model = DQNNetwork(self.hparams.n_actions, self.hparams.screen_size, self.hparams.n_variables)
         self.target_model = DQNNetwork(self.hparams.n_actions, self.hparams.screen_size, self.hparams.n_variables)
+        self.model = DQNNetwork(self.hparams.n_actions, self.hparams.screen_size, self.hparams.n_variables)
 
-        self.model.eval()
-        self.target_model.train()
+        self.target_model.eval()
+        self.model.train()
+        self.__update_weights()
 
         self.buffer = ReplayBuffer(self.hparams.buffer_size)
         self.dataset = None
@@ -66,14 +67,14 @@ class DQNAgent(LightningModule, Agent):
 
     def __get_best_action(self, state):
         with torch.no_grad():
-            qvalues = self.model.forward_state(state, self.device)
+            qvalues = self.target_model.forward_state(state, self.device)
 
         best_action_idx = torch.argmax(qvalues).item()
         best_action_vec = self.__get_action_vec(best_action_idx)
         return best_action_vec
 
     def configure_optimizers(self):
-        optimizer = Adam(self.target_model.parameters(), lr=self.hparams.lr)
+        optimizer = Adam(self.model.parameters(), lr=self.hparams.lr)
         return optimizer
 
     def train_dataloader(self):
@@ -140,10 +141,10 @@ class DQNAgent(LightningModule, Agent):
         states, actions, rewards, next_states, dones = batch
         actions = torch.argmax(actions, dim=1)
 
-        state_action_values = self.target_model(states).gather(1, actions.long().unsqueeze(-1)).squeeze(-1)
+        state_action_values = self.model(states).gather(1, actions.long().unsqueeze(-1)).squeeze(-1)
 
         with torch.no_grad():
-            next_state_values = self.model(next_states).max(1)[0]
+            next_state_values = self.target_model(next_states).max(1)[0]
             next_state_values[dones] = 0.0
             next_state_values = next_state_values.detach()
 
@@ -151,7 +152,7 @@ class DQNAgent(LightningModule, Agent):
         return nn.MSELoss()(state_action_values, expected_state_action_values)
 
     def __update_weights(self):
-        self.model.load_state_dict(self.target_model.state_dict())
+        self.target_model.load_state_dict(self.model.state_dict())
 
     def __populate_buffer(self):
         while len(self.buffer) < self.hparams.populate_steps:
