@@ -15,11 +15,11 @@ def setup_game(name='AI', log_rewards=False, window_visible=True):
 def _create_base_game(name, window_visible=False):
     game = vzd.DoomGame()
     
-    game.load_config(str(Path(__file__).parent.parent.parent / 'scenarios' / 'multi.cfg'))
+    game.load_config(str(Path(__file__).parent.parent.parent / 'scenarios' / 'multi_v2.cfg'))
     game.set_doom_map("map01")
     game.set_mode(vzd.Mode.PLAYER)
     game.add_game_args('-deathmatch ')
-    game.add_game_args('+viz_bots_path ../scenarios/bots.cfg ')
+    game.add_game_args('+viz_bots_path ../bots/stupid.cfg ')
     game.add_game_args('+sv_forcerespawn 1 ')
     game.add_game_args('+sv_noautoaim 1 ')
     game.add_game_args('+sv_respawnprotect 1 ')
@@ -27,7 +27,7 @@ def _create_base_game(name, window_visible=False):
     game.add_game_args('+sv_nocrouch 1 ')
     game.add_game_args('+viz_nocheat 1 ')
     game.add_game_args('+sv_respawnprotect 1 ')
-    game.add_game_args('+viz_respawn_delay 0 ')
+    game.add_game_args('+viz_respawn_delay 10 ')
     game.add_game_args('+sv_noexit 1 ')
     game.add_game_args('+sv_samelevel 1 ')
     game.add_game_args('+alwaysapplydmflags 1 ')

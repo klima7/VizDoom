@@ -22,12 +22,12 @@ from setup import setup_game
 # Q-learning settings
 learning_rate = 0.00025
 discount_factor = 0.99
-train_epochs = 5
+train_epochs = 50000
 learning_steps_per_epoch = 2000
 replay_memory_size = 10000
 
 # NN learning settings
-batch_size = 64
+batch_size = 256
 
 # Training regime
 test_episodes_per_epoch = 5
@@ -41,6 +41,8 @@ model_savefile = "./model-doom.pth"
 save_model = True
 load_model = False
 skip_learning = False
+
+counter = 0
 
 # Configuration file path
 config_file_path = os.path.join(vzd.scenarios_path, "simpler_basic.cfg")
@@ -260,6 +262,7 @@ class DQNAgent:
         self.memory.append((state, action, reward, next_state, done))
 
     def train(self):
+        global counter
         batch = random.sample(self.memory, self.batch_size)
         batch = np.array(batch, dtype=object)
 
@@ -295,10 +298,12 @@ class DQNAgent:
         td_error.backward()
         self.opt.step()
 
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
-        else:
-            self.epsilon = self.epsilon_min
+        counter += 1
+        if counter % 40 == 0:
+            if self.epsilon > self.epsilon_min:
+                self.epsilon *= self.epsilon_decay
+            else:
+                self.epsilon = self.epsilon_min
 
 
 if __name__ == "__main__":
