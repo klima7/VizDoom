@@ -13,7 +13,7 @@ from ..agent import Agent
 from ..replay import ReplayBuffer, ReplayDataset
 
 
-class DQNAgent(LightningModule, Agent):
+class ActorCritic(LightningModule, Agent):
 
     def __init__(
             self,
@@ -147,7 +147,7 @@ class DQNAgent(LightningModule, Agent):
             next_state_values[dones] = 0.0
         expected_state_action_values = next_state_values * self.hparams.gamma + rewards
 
-        return nn.MSELoss()(state_action_values, expected_state_action_values)
+        return nn.SmoothL1Loss()(state_action_values, expected_state_action_values)
 
     def __update_weights(self):
         self.target_model.load_state_dict(self.model.state_dict())
