@@ -19,6 +19,7 @@ def _create_base_game(name, window_visible=False):
     game.set_doom_map("map01")
     game.set_mode(vzd.Mode.PLAYER)
     game.add_game_args('-deathmatch ')
+    game.add_game_args('+viz_bots_path ../scenarios/bots.cfg ')
     game.add_game_args('+sv_forcerespawn 1 ')
     game.add_game_args('+sv_noautoaim 1 ')
     game.add_game_args('+sv_respawnprotect 1 ')
