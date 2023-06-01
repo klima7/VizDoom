@@ -148,6 +148,7 @@ class Rewards:
     health_penalty: float = 0
     armor_penalty: float = 0
     ammo_penalty: float = 0
+    attack_not_ready_penalty: float = 0
         
     
 class RewardsDoomWrapper:
@@ -168,7 +169,7 @@ class RewardsDoomWrapper:
         self.__itemcount_tracker = NumVarTracker(self, vzd.GameVariable.ITEMCOUNT, 0, rewards.item_reward)
         self.__secretcount_tracker = NumVarTracker(self, vzd.GameVariable.SECRETCOUNT, 0, rewards.secret_reward)
         self.__dead_tracker = BoolVarTracker(self, vzd.GameVariable.DEAD, -rewards.death_penalty, rewards.life_reward)
-        self.__attack_ready_tracker = BoolVarTracker(self, vzd.GameVariable.ATTACK_READY, 0, 0)
+        self.__attack_ready_tracker = BoolVarTracker(self, vzd.GameVariable.ATTACK_READY, 0, -rewards.attack_not_ready_penalty)
         self.__altattack_ready_tracker = BoolVarTracker(self, vzd.GameVariable.ALTATTACK_READY, 0, 0)
         
         ammo_variables = [vzd.GameVariable.AMMO0, vzd.GameVariable.AMMO1, vzd.GameVariable.AMMO2, 
