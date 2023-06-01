@@ -1,5 +1,6 @@
 import random
 
+import numpy as np
 import torch
 from torch import nn
 from torch.optim import Adam
@@ -67,14 +68,14 @@ class DQNAgent(LightningModule, Agent):
 
     def __get_best_action(self, state):
         with torch.no_grad():
-            qvalues = self.target_model.forward_state(state, self.device)
+            qvalues = self.model.forward_state(state, self.device)
 
         best_action_idx = torch.argmax(qvalues).item()
         best_action_vec = self.__get_action_vec(best_action_idx)
         return best_action_vec
 
     def configure_optimizers(self):
-        optimizer = Adam(self.model.parameters(), lr=self.hparams.lr)
+        optimizer = Adam(self.model.parameters(), lr=self.hparams.lr, amsgrad=True)
         return optimizer
 
     def train_dataloader(self):
@@ -133,23 +134,20 @@ class DQNAgent(LightningModule, Agent):
         if update_buffer:
             reward = self.env.get_last_reward()
             next_state = self.env.get_state()
-            self.buffer.add(state, action, reward, next_state, done)
+            self.buffer.add(state, np.argmax(action), reward, next_state, done)
 
         return done
 
     def __calculate_loss(self, batch):
         states, actions, rewards, next_states, dones = batch
-        actions = torch.argmax(actions, dim=1)
-
-        state_action_values = self.model(states).gather(1, actions.long().unsqueeze(-1)).squeeze(-1)
+        state_action_values = self.model(states).gather(1, actions.unsqueeze(-1)).squeeze(-1)
 
         with torch.no_grad():
             next_state_values = self.target_model(next_states).max(1)[0]
             next_state_values[dones] = 0.0
-            next_state_values = next_state_values.detach()
-
         expected_state_action_values = next_state_values * self.hparams.gamma + rewards
-        return nn.MSELoss()(state_action_values, expected_state_action_values)
+
+        return nn.SmoothL1Loss()(state_action_values, expected_state_action_values)
 
     def __update_weights(self):
         self.target_model.load_state_dict(self.model.state_dict())
