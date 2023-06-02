@@ -51,7 +51,6 @@ class ActorCriticAgent(LightningModule, Agent):
 
     def get_action(self, state):
         with torch.no_grad():
-            # print(state)
             action_probs = self.actor.forward_state(state, self.device)
             action_probs = action_probs.detach().cpu().numpy()
             action_idx = np.random.choice(self.hparams.n_actions, p=action_probs)
@@ -94,15 +93,17 @@ class ActorCriticAgent(LightningModule, Agent):
 
         td_error = self.__compute_td_error(states, actions, rewards, next_states, dones)
 
-        actor_optimizer.zero_grad()
-        actor_loss = -torch.log(self.actor(states).gather(1, actions.unsqueeze(1)).squeeze()) * td_error.detach()
+        action_probs = self.actor(states)
+        selected_action_probs = action_probs.gather(1, actions.unsqueeze(1)).squeeze()
+        actor_loss = -torch.log(selected_action_probs) * td_error.detach()
         actor_loss = actor_loss.mean()
+        actor_optimizer.zero_grad()
         self.manual_backward(actor_loss)
         actor_optimizer.step()
 
-        critic_optimizer.zero_grad()
         critic_loss = td_error.pow(2)
         critic_loss = critic_loss.mean()
+        critic_optimizer.zero_grad()
         self.manual_backward(critic_loss)
         critic_optimizer.step()
 

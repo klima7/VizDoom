@@ -33,5 +33,5 @@ def _apply_game_wrappers(game, log_rewards):
         hit_reward=100,
     )
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
-    game = PreprocessGameWrapper(game, screen_size=(40, 30), depth=False)
+    game = PreprocessGameWrapper(game, screen_size=(45, 30), depth=False)
     return game
