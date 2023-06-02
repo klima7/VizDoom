@@ -8,41 +8,35 @@ from torch.utils.data import DataLoader
 from lightning.pytorch import LightningModule
 import vizdoom as vzd
 
-from .network import DQNNetwork
+from .networks import Actor, Critic
 from ..agent import Agent
 from ..replay import ReplayBuffer, ReplayDataset
 
 
-class ActorCritic(LightningModule, Agent):
+class ActorCriticAgent(LightningModule, Agent):
+
 
     def __init__(
             self,
             n_actions,
             screen_size,
             n_variables,
-            lr=0.001,
             batch_size=32,
+            lr_actor=0.001,
+            lr_critic=0.001,
             frames_skip=1,
-            epsilon=0.5,
             gamma=0.99,
             buffer_size=50_000,
             populate_steps=1_000,
             actions_per_step=10,
-            validation_interval=10,
-            weights_update_interval=1_000,
-            epsilon_update_interval=200,
-            epsilon_decay=0.99,
-            epsilon_min=0.02,
+            validation_interval=50,
     ):
         super().__init__()
         self.save_hyperparameters()
+        self.automatic_optimization = False
 
-        self.target_model = DQNNetwork(self.hparams.n_actions, self.hparams.screen_size, self.hparams.n_variables)
-        self.model = DQNNetwork(self.hparams.n_actions, self.hparams.screen_size, self.hparams.n_variables)
-
-        self.target_model.eval()
-        self.model.train()
-        self.__update_weights()
+        self.actor = Actor(self.hparams.n_actions, self.hparams.screen_size, self.hparams.n_variables)
+        self.critic = Critic(self.hparams.screen_size, self.hparams.n_variables)
 
         self.buffer = ReplayBuffer(self.hparams.buffer_size)
         self.dataset = None
@@ -55,28 +49,19 @@ class ActorCritic(LightningModule, Agent):
         self.env = env
         self.dataset = ReplayDataset(self.buffer, self.env)
 
-    def get_action(self, state, epsilon=None):
-        if random.random() < (epsilon or self.hparams.epsilon):
-            return self.__get_random_action()
-        else:
-            return self.__get_best_action(state)
-
-    def __get_random_action(self):
-        action_idx = random.randint(0, self.hparams.n_actions - 1)
-        action_vec = self.__get_action_vec(action_idx)
-        return action_vec
-
-    def __get_best_action(self, state):
+    def get_action(self, state):
         with torch.no_grad():
-            qvalues = self.model.forward_state(state, self.device)
-
-        best_action_idx = torch.argmax(qvalues).item()
-        best_action_vec = self.__get_action_vec(best_action_idx)
-        return best_action_vec
+            # print(state)
+            action_probs = self.actor.forward_state(state, self.device)
+            action_probs = action_probs.detach().cpu().numpy()
+            action_idx = np.random.choice(self.hparams.n_actions, p=action_probs)
+            action_vec = self.__get_action_vec(action_idx)
+            return action_vec
 
     def configure_optimizers(self):
-        optimizer = Adam(self.model.parameters(), lr=self.hparams.lr, amsgrad=True)
-        return optimizer
+        optimizer_actor = Adam(self.actor.parameters(), lr=self.hparams.lr_actor)
+        optimizer_critic = Adam(self.critic.parameters(), lr=self.hparams.lr_critic)
+        return optimizer_actor, optimizer_critic
 
     def train_dataloader(self):
         dataloader = DataLoader(
@@ -103,22 +88,36 @@ class ActorCritic(LightningModule, Agent):
                 self.train_metrics = self.env.get_metrics(prefix='train_')
                 break
 
-    def on_train_batch_end(self, outputs, batch, batch_idx):
-        if self.global_step % self.hparams.weights_update_interval == 0:
-            self.__update_weights()
-
-        if self.global_step % self.hparams.epsilon_update_interval == 0:
-            self.hparams.epsilon = max(self.hparams.epsilon * self.hparams.epsilon_decay, self.hparams.epsilon_min)
-
     def training_step(self, batch, batch_no):
-        loss = self.__calculate_loss(batch)
+        states, actions, rewards, next_states, dones = batch
+        actor_optimizer, critic_optimizer = self.optimizers()
 
-        self.log('train_loss', loss),
-        self.log('train_epsilon', self.hparams.epsilon),
+        td_error = self.__compute_td_error(states, actions, rewards, next_states, dones)
+
+        actor_optimizer.zero_grad()
+        actor_loss = -torch.log(self.actor(states).gather(1, actions.unsqueeze(1)).squeeze()) * td_error.detach()
+        actor_loss = actor_loss.mean()
+        self.manual_backward(actor_loss)
+        actor_optimizer.step()
+
+        critic_optimizer.zero_grad()
+        critic_loss = td_error.pow(2)
+        critic_loss = critic_loss.mean()
+        self.manual_backward(critic_loss)
+        critic_optimizer.step()
+
+        self.log('actor_loss', actor_loss),
+        self.log('critic_loss', critic_loss),
         self.log('train_buffer_size', float(len(self.buffer)))
         self.log_dict(self.train_metrics)
         self.log_dict(self.val_metrics)
-        return loss
+
+    def __compute_td_error(self, states, actions, rewards, next_states, dones):
+        values = self.critic(states).squeeze()
+        next_values = self.critic(next_states).squeeze()
+        td_targets = rewards + self.hparams.gamma * next_values * (1 - dones.long())
+        td_error = td_targets - values
+        return td_error
 
     def __play_step(self, update_buffer=True):
         state = self.env.get_state()
@@ -138,20 +137,6 @@ class ActorCritic(LightningModule, Agent):
 
         return done
 
-    def __calculate_loss(self, batch):
-        states, actions, rewards, next_states, dones = batch
-        state_action_values = self.model(states).gather(1, actions.unsqueeze(-1)).squeeze(-1)
-
-        with torch.no_grad():
-            next_state_values = self.target_model(next_states).max(1)[0]
-            next_state_values[dones] = 0.0
-        expected_state_action_values = next_state_values * self.hparams.gamma + rewards
-
-        return nn.SmoothL1Loss()(state_action_values, expected_state_action_values)
-
-    def __update_weights(self):
-        self.target_model.load_state_dict(self.model.state_dict())
-
     def __populate_buffer(self):
         while len(self.buffer) < self.hparams.populate_steps:
             done = self.__play_step()
@@ -162,7 +147,7 @@ class ActorCritic(LightningModule, Agent):
         self.env.new_episode()
         while not self.env.is_episode_finished():
             state = self.env.get_state()
-            action = self.get_action(state, epsilon=0)
+            action = self.get_action(state)
             self.env.make_action(action)
         self.val_metrics = self.env.get_metrics(prefix='val_')
 

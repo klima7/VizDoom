@@ -7,37 +7,57 @@ from lightning.pytorch.profilers import SimpleProfiler, AdvancedProfiler
 from lightning.pytorch.callbacks import ModelCheckpoint
 
 from lib.dqn import DQNAgent
+from lib.actor_critic import ActorCriticAgent
 from setup import setup_game
 
 
 warnings.filterwarnings("ignore", ".*train_dataloader, does not have many workers.*")
 
+ALGORITHM = 'actor_critic'
+
 game = setup_game()
 
-agent = DQNAgent(
-    n_actions=game.get_available_buttons_size(),
-    screen_size=game.get_screen_size(),
-    n_variables=game.get_variables_size(),
+if ALGORITHM == 'dqn':
+    agent = DQNAgent(
+        n_actions=game.get_available_buttons_size(),
+        screen_size=game.get_screen_size(),
+        n_variables=game.get_variables_size(),
 
-    lr=0.00025,
-    batch_size=256,
+        lr=0.00025,
+        batch_size=64,
 
-    gamma=0.99,
-    epsilon=0.7,
-    populate_steps=1_00,
-    buffer_size=10_000,
-    actions_per_step=10,
-    frames_skip=3,
-    validation_interval=50,
-    weights_update_interval=1_000,
+        gamma=0.99,
+        epsilon=0.7,
+        populate_steps=1_000,
+        buffer_size=10_000,
+        actions_per_step=10,
+        frames_skip=3,
+        validation_interval=50,
+        weights_update_interval=1_000,
 
-    epsilon_update_interval=20,
-    epsilon_min=0.05,
-)
+        epsilon_update_interval=20,
+        epsilon_min=0.05,
+    )
 
-# agent = DQNAgent.load_from_checkpoint(
-#     '../logs/version_42/checkpoints/last.ckpt',
-# )
+    # agent = DQNAgent.load_from_checkpoint(
+    #     '../logs/version_42/checkpoints/last.ckpt',
+    # )
+
+elif ALGORITHM == 'actor_critic':
+    agent = ActorCriticAgent(
+        n_actions=game.get_available_buttons_size(),
+        screen_size=game.get_screen_size(),
+        n_variables=game.get_variables_size(),
+        batch_size=256,
+        lr_actor=0.0001,
+        lr_critic=0.0001,
+        frames_skip=2,
+        gamma=0.99,
+        buffer_size=50_000,
+        populate_steps=100,
+        actions_per_step=10,
+        validation_interval=50,
+    )
 
 logger = TensorBoardLogger(
     save_dir=Path(__file__).parent.parent,

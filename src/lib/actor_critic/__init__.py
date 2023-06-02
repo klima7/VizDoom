@@ -1,1 +1,1 @@
-from .agent import DQNAgent
+from .agent import ActorCriticAgent
