@@ -51,12 +51,12 @@ elif ALGORITHM == 'actor_critic':
         batch_size=1,
         lr_actor=0.0001,
         lr_critic=0.0001,
-        frames_skip=12,
+        frames_skip=3,
         gamma=0.99,
         buffer_size=1,
         populate_steps=1,
         actions_per_step=1,
-        validation_interval=50000,
+        validation_interval=500000000000000,
     )
 
 logger = TensorBoardLogger(

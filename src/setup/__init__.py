@@ -1,1 +1,1 @@
-from .simple import *
+from .map1 import *
