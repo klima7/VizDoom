@@ -29,7 +29,7 @@ def _create_base_game(name, window_visible=False):
 
 def _apply_game_wrappers(game, log_rewards):
     rewards = Rewards(
-        life_reward=-1,
+        life_reward=-3,
         hit_reward=100,
     )
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)

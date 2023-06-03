@@ -48,15 +48,15 @@ elif ALGORITHM == 'actor_critic':
         n_actions=game.get_available_buttons_size(),
         screen_size=game.get_screen_size(),
         n_variables=game.get_variables_size(),
-        batch_size=64,
+        batch_size=1,
         lr_actor=0.0001,
-        lr_critic=0.001,
+        lr_critic=0.0001,
         frames_skip=12,
         gamma=0.99,
-        buffer_size=4_000,
-        populate_steps=1_00,
-        actions_per_step=20,
-        validation_interval=200,
+        buffer_size=1,
+        populate_steps=1,
+        actions_per_step=1,
+        validation_interval=50000,
     )
 
 logger = TensorBoardLogger(

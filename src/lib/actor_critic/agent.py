@@ -3,7 +3,7 @@ import random
 import numpy as np
 import torch
 from torch import nn
-from torch.optim import Adam
+from torch.optim import Adam, SGD
 from torch.utils.data import DataLoader
 from lightning.pytorch import LightningModule
 import vizdoom as vzd
@@ -45,6 +45,8 @@ class ActorCriticAgent(LightningModule, Agent):
         self.train_metrics = {}
         self.val_metrics = {}
 
+        self.I = 1
+
     def set_train_environment(self, env):
         self.env = env
         self.dataset = ReplayDataset(self.buffer, self.env)
@@ -58,8 +60,8 @@ class ActorCriticAgent(LightningModule, Agent):
             return action_vec
 
     def configure_optimizers(self):
-        optimizer_actor = Adam(self.actor.parameters(), lr=self.hparams.lr_actor)
-        optimizer_critic = Adam(self.critic.parameters(), lr=self.hparams.lr_critic)
+        optimizer_actor = SGD(self.actor.parameters(), lr=self.hparams.lr_actor)
+        optimizer_critic = SGD(self.critic.parameters(), lr=self.hparams.lr_critic)
         return optimizer_actor, optimizer_critic
 
     def train_dataloader(self):
@@ -76,6 +78,9 @@ class ActorCriticAgent(LightningModule, Agent):
     def on_fit_end(self):
         self.env.close()
 
+    def on_train_epoch_start(self):
+        self.I = 1
+
     def on_train_epoch_end(self):
         if self.current_epoch % self.hparams.validation_interval == 0:
             self.__validate()
@@ -83,6 +88,7 @@ class ActorCriticAgent(LightningModule, Agent):
     def on_train_batch_start(self, batch, batch_idx):
         for _ in range(self.hparams.actions_per_step):
             done = self.__play_step(update_buffer=True)
+            self.I *= self.hparams.gamma
             if done:
                 self.train_metrics = self.env.get_metrics(prefix='train_')
                 break
@@ -91,21 +97,39 @@ class ActorCriticAgent(LightningModule, Agent):
         states, actions, rewards, next_states, dones = batch
         actor_optimizer, critic_optimizer = self.optimizers()
 
-        td_error = self.__compute_td_error(states, actions, rewards, next_states, dones)
+        # calculate difference
+        # td_error = self.__compute_td_error(states, actions, rewards, next_states, dones)
 
-        action_probs = self.actor(states)
-        selected_action_probs = action_probs.gather(1, actions.unsqueeze(1)).squeeze()
-        actor_loss = -torch.log(selected_action_probs) * td_error.detach()
-        actor_loss = actor_loss.mean()
-        actor_optimizer.zero_grad()
-        self.manual_backward(actor_loss)
-        actor_optimizer.step()
+        # ------------update critic--------------
+        current_value = self.critic(states).squeeze()
+        next_value = self.critic(next_states).squeeze()
+        target_value = rewards + self.hparams.gamma * next_value * (1 - dones.long())
+        critic_loss = nn.MSELoss()(current_value, target_value)
+        critic_loss *= self.I
 
-        critic_loss = td_error.pow(2)
-        critic_loss = critic_loss.mean()
+        # critic_loss = - td_error * self.critic(states).squeeze()
+        # critic_loss = critic_loss.mean()
+
         critic_optimizer.zero_grad()
         self.manual_backward(critic_loss)
         critic_optimizer.step()
+
+        # -------------update actor--------------
+        advantage = target_value.detach() - current_value.detach()
+        action_probs = self.actor(states)
+        action_dist = torch.distributions.Categorical(action_probs)
+        log_prob = action_dist.log_prob(actions)
+        actor_loss = -log_prob * advantage
+        actor_loss = actor_loss.mean()
+        actor_loss *= self.I
+
+        # selected_action_probs = self.actor(states).gather(1, actions.unsqueeze(1)).squeeze()
+        # actor_loss = - td_error * torch.log(selected_action_probs)
+        # actor_loss = actor_loss.mean()
+
+        actor_optimizer.zero_grad()
+        self.manual_backward(actor_loss)
+        actor_optimizer.step()
 
         self.log('actor_loss', actor_loss),
         self.log('critic_loss', critic_loss),
@@ -118,7 +142,7 @@ class ActorCriticAgent(LightningModule, Agent):
         next_values = self.critic(next_states).squeeze()
         td_targets = rewards + self.hparams.gamma * next_values * (1 - dones.long())
         td_error = td_targets - values
-        return td_error
+        return td_error.detach()
 
     def __play_step(self, update_buffer=True):
         state = self.env.get_state()
