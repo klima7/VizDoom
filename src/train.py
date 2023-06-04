@@ -85,7 +85,7 @@ checkpoint_checkpoint = ModelCheckpoint(
 )
 
 trainer = Trainer(
-    accelerator='cuda',
+    accelerator='gpu',
     max_epochs=-1,
     enable_progress_bar=True,
     logger=logger,

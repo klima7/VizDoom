@@ -14,7 +14,7 @@ while True:
         print(state['variables'])
         screen = state['screen']
         for i, channel in enumerate(screen):
-            cv2.imshow(f'screen {i}', channel)
+            cv2.imshow(f'screen {i}', cv2.resize(channel, (640, 480), interpolation=cv2.INTER_NEAREST))
         cv2.waitKey(1)
 
         game.advance_action()
