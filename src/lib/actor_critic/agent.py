@@ -105,7 +105,7 @@ class ActorCriticAgent(LightningModule, Agent):
         next_value = self.critic(next_states).squeeze()
         target_value = rewards + self.hparams.gamma * next_value * (1 - dones.long())
         critic_loss = nn.MSELoss()(current_value, target_value)
-        # critic_loss *= self.I
+        critic_loss *= self.I
 
         # critic_loss = - td_error * self.critic(states).squeeze()
         # critic_loss = critic_loss.mean()
@@ -121,7 +121,7 @@ class ActorCriticAgent(LightningModule, Agent):
         log_prob = action_dist.log_prob(actions)
         actor_loss = -log_prob * advantage
         actor_loss = actor_loss.mean()
-        # actor_loss *= self.I
+        actor_loss *= self.I
 
         # selected_action_probs = self.actor(states).gather(1, actions.unsqueeze(1)).squeeze()
         # actor_loss = - td_error * torch.log(selected_action_probs)

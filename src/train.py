@@ -49,8 +49,8 @@ elif ALGORITHM == 'actor_critic':
         screen_size=game.get_screen_size(),
         n_variables=game.get_variables_size(),
         batch_size=1,
-        lr_actor=0.01,
-        lr_critic=0.01,
+        lr_actor=0.001,
+        lr_critic=0.001,
         frames_skip=3,
         gamma=0.99,
         buffer_size=1,
@@ -85,7 +85,7 @@ checkpoint_checkpoint = ModelCheckpoint(
 )
 
 trainer = Trainer(
-    accelerator='gpu',
+    accelerator='cuda',
     max_epochs=-1,
     enable_progress_bar=True,
     logger=logger,
