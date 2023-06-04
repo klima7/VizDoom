@@ -55,12 +55,12 @@ def _create_base_game(name, window_visible=False):
 def _apply_game_wrappers(game, log_rewards):
     rewards = Rewards(
         kill_reward=40,
-        single_death_penalty=20,
-        hit_reward=2,
-        hit_penalty=1,
+        # single_death_penalty=20,
+        hit_reward=4,
+        # hit_penalty=1,
         damage_reward=1,
-        damage_penalty=0.3,
-        ammo_penalty=0.1,
+        # damage_penalty=0.3,
+        ammo_penalty=0.7,
     )
 
     labels = []

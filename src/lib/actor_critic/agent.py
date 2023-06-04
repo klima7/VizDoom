@@ -60,8 +60,8 @@ class ActorCriticAgent(LightningModule, Agent):
             return action_vec
 
     def configure_optimizers(self):
-        optimizer_actor = Adam(self.actor.parameters(), lr=self.hparams.lr_actor)
-        optimizer_critic = Adam(self.critic.parameters(), lr=self.hparams.lr_critic)
+        optimizer_actor = SGD(self.actor.parameters(), lr=self.hparams.lr_actor)
+        optimizer_critic = SGD(self.critic.parameters(), lr=self.hparams.lr_critic)
         return optimizer_actor, optimizer_critic
 
     def train_dataloader(self):
