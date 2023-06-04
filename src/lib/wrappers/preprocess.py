@@ -4,7 +4,7 @@ import cv2
 
 class PreprocessGameWrapper:
 
-    def __init__(self, game, screen_size, labels=None, variables=None, collect_labels=False, depth=True):
+    def __init__(self, game, screen_size, labels=None, variables=None, collect_labels=False, depth=False):
         self.game = game
         self.__screen_size = screen_size
         self.__labels = labels or []
@@ -36,7 +36,7 @@ class PreprocessGameWrapper:
             self.__update_seen_labels(old_state)
 
         if self.game.is_episode_finished():
-            screen = np.zeros(self.get_screen_size(), dtype=np.float32)
+            screen = np.zeros(self.get_screen_size(), dtype=np.uint8)
             variables = np.zeros(self.get_variables_size(), dtype=np.float32)
         else:
             screen = self.__get_screen(old_state)

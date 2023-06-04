@@ -3,7 +3,7 @@ from pathlib import Path
 import vizdoom as vzd
 
 from lib.wrappers import AddBotsDoomWrapper, \
-    RewardsDoomWrapper, Rewards, PreprocessGameWrapper
+    RewardsDoomWrapper, Rewards, PreprocessGameWrapper, StackStateGameWrapper
 
     
 def setup_game(name='AI', log_rewards=False, window_visible=True):
@@ -66,7 +66,7 @@ def _apply_game_wrappers(game, log_rewards):
     labels = []
 
     variables = {
-        vzd.GameVariable.HEALTH: slice(0, 15),
+        vzd.GameVariable.HEALTH: slice(0, 100),
         vzd.GameVariable.AMMO4: slice(0, 50),
     }
 
@@ -79,4 +79,5 @@ def _apply_game_wrappers(game, log_rewards):
         variables=variables,
         depth=False
     )
+    game = StackStateGameWrapper(game, n_frames=5)
     return game
