@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from lightning.pytorch import LightningModule
 import vizdoom as vzd
 
-from .network_5x80x60_pool import DQNNetwork
+from .network_5x60x40 import DQNNetwork
 from ..agent import Agent
 from ..replay import ReplayBuffer, ReplayDataset
 
@@ -33,6 +33,7 @@ class DQNAgent(LightningModule, Agent):
             epsilon_update_interval=200,
             epsilon_decay=0.99,
             epsilon_min=0.02,
+            replay_update_skip=1,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -91,8 +92,9 @@ class DQNAgent(LightningModule, Agent):
             self.__validate()
 
     def on_train_batch_start(self, batch, batch_idx):
+        should_update_replay = self.global_step % self.hparams.replay_update_skip == 0
         for _ in range(self.hparams.actions_per_step):
-            done = self.__play_step(update_buffer=True)
+            done = self.__play_step(should_update_replay)
             if done:
                 self.train_metrics = self.env.get_metrics(prefix='train_')
                 break
@@ -128,7 +130,7 @@ class DQNAgent(LightningModule, Agent):
         if update_buffer:
             reward = self.env.get_last_reward()
             next_state = self.env.get_state()
-            self.buffer.add(state, np.argmax(action), reward, next_state, done)
+            self.buffer.add(state, action, reward, next_state, done)
 
         return done
 

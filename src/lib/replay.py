@@ -15,7 +15,7 @@ class ReplayBuffer(object):
         return len(self.__storage)
 
     def add(self, state, action, reward, next_state, done):
-        data = (state, np.array(action), np.float32(reward), next_state, np.array(done))
+        data = (state, action, np.float32(reward), next_state, done)
 
         if self.__next_idx >= len(self.__storage):
             self.__storage.append(data)
@@ -37,7 +37,16 @@ class ReplayDataset(IterableDataset):
     def __iter__(self):
         self.game.new_episode()
         while not self.game.is_episode_finished():
-            sample = self.replay.sample()
-            sample[0]['screen'] = sample[0]['screen'].astype(np.float32) / 255
-            sample[3]['screen'] = sample[3]['screen'].astype(np.float32) / 255
-            yield sample
+            state, action, reward, next_state, done = self.replay.sample()
+
+            state = {
+                'screen': state['screen'].astype(np.float32) / 255,
+                'variables': state['variables']
+            }
+
+            next_state = {
+                'screen': next_state['screen'].astype(np.float32) / 255,
+                'variables': next_state['variables']
+            }
+
+            yield state, action, reward, next_state, done
