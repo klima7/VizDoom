@@ -80,6 +80,17 @@ def _apply_game_wrappers(game, log_rewards):
         variables=variables,
         depth=False
     )
-    game = ModifyButtonsWrapper(game, available_buttons=[vzd.Button.MOVE_FORWARD, vzd.Button.MOVE_BACKWARD])
+    game = ModifyButtonsWrapper(
+        game,
+        digital_buttons=[
+            None,
+            vzd.Button.MOVE_FORWARD,
+            vzd.Button.MOVE_BACKWARD
+        ],
+        delta_buttons={
+            vzd.Button.TURN_LEFT_RIGHT_DELTA: (-1, 1),
+            vzd.Button.LOOK_UP_DOWN_DELTA: (-1, 1)
+        }
+    )
     game = StackStateGameWrapper(game, n_frames=5)
     return game

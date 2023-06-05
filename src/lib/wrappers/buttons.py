@@ -1,9 +1,12 @@
 class ModifyButtonsWrapper:
 
-    def __init__(self, game, available_buttons=None, delta_buttons=None):
+    def __init__(self, game, digital_buttons=None, delta_buttons=None):
+        digital_buttons = digital_buttons if digital_buttons else []
+        delta_buttons = delta_buttons if delta_buttons else {}
+
         self.game = game
-        self.__available_buttons = available_buttons if available_buttons else []
-        self.__delta_buttons = delta_buttons if delta_buttons else {}
+        self.__digital_buttons = digital_buttons
+        self.__delta_buttons = delta_buttons
 
         self.__inside_buttons = None
         self.__outside_inside_map = None
@@ -15,30 +18,51 @@ class ModifyButtonsWrapper:
         self.game.init()
         self.__inside_buttons = self.game.get_available_buttons()
         self.__outside_inside_map = self.__create_outside_inside_map()
+        print(self.__outside_inside_map)
+        assert False
 
     def get_available_buttons(self):
-        return tuple(button for button in self.game.get_available_buttons() if button in self.__available_buttons)
+        return tuple(button for button in self.game.get_available_buttons() if button in self.__digital_buttons)
 
     def get_available_buttons_size(self):
-        return len(self.__available_buttons)
+        return len(self.__digital_buttons)
 
     def make_action(self, action, *args, **kwargs):
-        assert 0 <= action < len(self.__available_buttons), 'Illegal action'
+        assert 0 <= action < len(self.__digital_buttons), 'Illegal action'
         inside_button = self.__outside_inside_map[action]
         self.game.make_action(inside_button, *args, **kwargs)
 
     def __create_outside_inside_map(self):
-        return {idx: self.__create_inside_action(button) for idx, button in enumerate(self.__available_buttons)}
+        out_in_map = {}
 
-    def __create_inside_action(self, outside_button):
+        for button in self.__digital_buttons:
+            out_in_map[len(out_in_map)+1] = self.__create_inside_digital_action(button)
+
+        for button in self.__delta_buttons:
+            in_action_1, in_action_2 = self.__create_inside_delta_actions(button)
+            out_in_map[len(out_in_map)+1] = in_action_1
+            out_in_map[len(out_in_map)+1] = in_action_2
+
+        return out_in_map
+
+    def __create_inside_digital_action(self, outside_button):
+        if outside_button is None:
+            return [0] * len(self.__inside_buttons)
+
         inside_button_idx = self.__inside_buttons.index(outside_button)
-        inside_action = self.__create_max_inside_action()
-        vector = [(val if idx == inside_button_idx else 0) for idx, val in enumerate(inside_action)]
+        vector = [(1 if idx == inside_button_idx else 0) for idx in range(len(self.__inside_buttons))]
         return vector
 
-    def __create_max_inside_action(self):
-        max_inside_action = [1] * len(self.__inside_buttons)
-        for button, value in self.__delta_buttons.items():
-            inside_button_idx = self.__inside_buttons.index(button)
-            max_inside_action[inside_button_idx] = value
-        return max_inside_action
+    def __create_inside_delta_actions(self, outside_button):
+        neg_value, pos_value = self.__delta_buttons[outside_button]
+        inside_button_idx = self.__inside_buttons.index(outside_button)
+
+        action = [0] * len(self.__inside_buttons)
+
+        neg_inside_action = list(action)
+        neg_inside_action[inside_button_idx] = neg_value
+
+        pos_inside_action = list(action)
+        pos_inside_action[inside_button_idx] = pos_value
+
+        return neg_inside_action, pos_inside_action
