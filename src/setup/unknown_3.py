@@ -2,7 +2,7 @@ from pathlib import Path
 
 import vizdoom as vzd
 
-from lib.wrappers import AddBotsDoomWrapper, \
+from lib.wrappers import AddBotsDoomWrapper, SetMonstersDoomWrapper, \
     RewardsDoomWrapper, Rewards, PreprocessGameWrapper, StackStateGameWrapper
 
 
@@ -75,6 +75,7 @@ def _apply_game_wrappers(game, log_rewards):
 
     game = RewardsDoomWrapper(game, rewards, log=True)
     game = AddBotsDoomWrapper(game, bots_count=6)
+    game = SetMonstersDoomWrapper(game, monsters_count=20)
     game = PreprocessGameWrapper(
         game,
         screen_size=(80, 60),
