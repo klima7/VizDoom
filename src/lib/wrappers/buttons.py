@@ -18,8 +18,6 @@ class ModifyButtonsWrapper:
         self.game.init()
         self.__inside_buttons = self.game.get_available_buttons()
         self.__outside_inside_map = self.__create_outside_inside_map()
-        print(self.__outside_inside_map)
-        assert False
 
     def get_available_buttons(self):
         return tuple(button for button in self.game.get_available_buttons() if button in self.__digital_buttons)
@@ -36,12 +34,12 @@ class ModifyButtonsWrapper:
         out_in_map = {}
 
         for button in self.__digital_buttons:
-            out_in_map[len(out_in_map)+1] = self.__create_inside_digital_action(button)
+            out_in_map[len(out_in_map)] = self.__create_inside_digital_action(button)
 
         for button in self.__delta_buttons:
             in_action_1, in_action_2 = self.__create_inside_delta_actions(button)
-            out_in_map[len(out_in_map)+1] = in_action_1
-            out_in_map[len(out_in_map)+1] = in_action_2
+            out_in_map[len(out_in_map)] = in_action_1
+            out_in_map[len(out_in_map)] = in_action_2
 
         return out_in_map
 

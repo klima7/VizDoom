@@ -15,7 +15,7 @@ def setup_game(name='AI', log_rewards=False, window_visible=True):
 def _create_base_game(name, window_visible=False):
     game = vzd.DoomGame()
 
-    game.load_config(str(Path(__file__).parent.parent.parent / 'scenarios' / 'cig_with_unknown.cfg'))
+    game.load_config(str(Path(__file__).parent.parent.parent / 'scenarios' / 'cig_with_unknown' / 'cig_with_unknown.cfg'))
     game.set_doom_map("map01")
     game.set_mode(vzd.Mode.PLAYER)
     game.add_game_args('-deathmatch ')

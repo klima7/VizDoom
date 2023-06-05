@@ -45,7 +45,7 @@ skip_learning = False
 counter = 0
 
 # Configuration file path
-config_file_path = os.path.join(vzd.scenarios_path, "simpler_basic.cfg")
+config_file_path = os.path.join(vzd.scenarios_path, "../scenarios/simpler_basic/simpler_basic.cfg")
 # config_file_path = os.path.join(vzd.scenarios_path, "rocket_basic.cfg")
 # config_file_path = os.path.join(vzd.scenarios_path, "basic.cfg")
 

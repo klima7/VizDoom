@@ -62,21 +62,15 @@ class DQNAgent(LightningModule, Agent):
             return self.__get_best_action(state)
 
     def __get_random_action(self):
-        action_idx = random.randint(0, self.hparams.n_actions - 1)
-        action_vec = self.__get_action_vec(action_idx)
-        return action_vec
+        return random.randint(0, self.hparams.n_actions - 1)
 
     def __get_best_action(self, state):
         with torch.no_grad():
             qvalues = self.model.forward_state(state, self.device)
-
-        best_action_idx = torch.argmax(qvalues).item()
-        best_action_vec = self.__get_action_vec(best_action_idx)
-        return best_action_vec
+        return torch.argmax(qvalues).item()
 
     def configure_optimizers(self):
-        optimizer = Adam(self.model.parameters(), lr=self.hparams.lr, amsgrad=True)
-        return optimizer
+        return Adam(self.model.parameters(), lr=self.hparams.lr, amsgrad=True)
 
     def train_dataloader(self):
         dataloader = DataLoader(
@@ -165,8 +159,3 @@ class DQNAgent(LightningModule, Agent):
             action = self.get_action(state, epsilon=0)
             self.env.make_action(action)
         self.val_metrics = self.env.get_metrics(prefix='val_')
-
-    def __get_action_vec(self, action_idx):
-        action_vector = [0] * self.hparams.n_actions
-        action_vector[action_idx] = 1
-        return action_vector

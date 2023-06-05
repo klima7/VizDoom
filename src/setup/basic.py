@@ -14,7 +14,7 @@ def setup_game(name='AI', log_rewards=False, window_visible=True):
 def _create_base_game(name, window_visible=False):
     game = vzd.DoomGame()
 
-    game.load_config(str(Path(__file__).parent.parent.parent / 'scenarios' / 'simpler_basic.cfg'))
+    game.load_config(str(Path(__file__).parent.parent.parent / 'scenarios' / 'simpler_basic' / 'simpler_basic.cfg'))
     game.set_window_visible(window_visible)
     game.set_mode(vzd.Mode.PLAYER)
     game.set_screen_format(vzd.ScreenFormat.GRAY8)
