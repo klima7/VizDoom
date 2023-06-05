@@ -2,7 +2,7 @@ from pathlib import Path
 
 import vizdoom as vzd
 
-from lib.wrappers import AddBotsDoomWrapper, \
+from lib.wrappers import AddBotsDoomWrapper, ModifyButtonsWrapper, \
     RewardsDoomWrapper, Rewards, PreprocessGameWrapper, StackStateGameWrapper
 
 
@@ -35,7 +35,7 @@ def _create_base_game(name, window_visible=False):
     game.set_episode_timeout(6000)
     game.set_doom_skill(3)
 
-    game.set_render_hud(True)
+    game.set_render_hud(False)
     game.set_render_minimal_hud(False)
     game.set_render_particles(False)
     game.set_render_decals(False)
@@ -43,6 +43,8 @@ def _create_base_game(name, window_visible=False):
     game.set_render_corpses(False)
     game.set_render_screen_flashes(False)
     game.set_render_weapon(True)
+    game.set_render_crosshair(False)
+    game.set_render_effects_sprites(False)
 
     game.add_game_args(f'+name {name}')
     game.set_window_visible(window_visible)
@@ -73,7 +75,7 @@ def _apply_game_wrappers(game, log_rewards):
         vzd.GameVariable.ARMOR: slice(0, 200),
     }
 
-    game = RewardsDoomWrapper(game, rewards, log=False)
+    game = RewardsDoomWrapper(game, rewards, log=log_rewards)
     game = AddBotsDoomWrapper(game, bots_count=5, difficulty=1)
     game = PreprocessGameWrapper(
         game,
@@ -81,6 +83,22 @@ def _apply_game_wrappers(game, log_rewards):
         labels=labels,
         variables=variables,
         depth=False
+    )
+    game = ModifyButtonsWrapper(
+        game,
+        digital_buttons=[
+            None,
+            vzd.Button.TURN_LEFT,
+            vzd.Button.TURN_RIGHT,
+            vzd.Button.ATTACK,
+            vzd.Button.MOVE_LEFT,
+            vzd.Button.MOVE_RIGHT,
+            vzd.Button.MOVE_FORWARD,
+            vzd.Button.MOVE_BACKWARD,
+        ],
+        delta_buttons={
+            vzd.Button.LOOK_UP_DOWN_DELTA: (-1, 1)
+        }
     )
     game = StackStateGameWrapper(game, n_frames=5)
     return game

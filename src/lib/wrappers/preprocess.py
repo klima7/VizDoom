@@ -50,7 +50,7 @@ class PreprocessGameWrapper:
     def __get_screen(self, state):
         parts = []
 
-        screen_buffer = cv2.resize(state.screen_buffer, self.__screen_size)[np.newaxis, ...]
+        screen_buffer = cv2.resize(state.screen_buffer, self.__screen_size, cv2.INTER_LANCZOS4)[np.newaxis, ...]
         parts.append(screen_buffer)
 
         if self.__depth:

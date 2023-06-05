@@ -29,13 +29,13 @@ if ALGORITHM == 'dqn':
         gamma=0.99,
         epsilon=0.7,
         populate_steps=1_000,
-        buffer_size=20_000,
-        actions_per_step=10,
-        frames_skip=3,
+        buffer_size=30_000,
+        actions_per_step=5,
+        frames_skip=5,
         validation_interval=50,
         weights_update_interval=500,
 
-        epsilon_update_interval=1_000,
+        epsilon_update_interval=2_000,
         epsilon_min=0.05,
     )
 
@@ -76,16 +76,13 @@ advanced_profiler = AdvancedProfiler(
 )
 
 checkpoint_checkpoint = ModelCheckpoint(
-    filename='best-{val_total_reward:.2f}',
-    monitor='val_total_reward',
-    mode='max',
     save_last=True,
-    save_top_k=5,
-    save_on_train_epoch_end=True,
+    save_top_k=-1,
+    every_n_epochs=50,
 )
 
 trainer = Trainer(
-    accelerator='gpu',
+    accelerator='cuda',
     max_epochs=-1,
     enable_progress_bar=True,
     logger=logger,

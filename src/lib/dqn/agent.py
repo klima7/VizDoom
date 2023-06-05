@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from lightning.pytorch import LightningModule
 import vizdoom as vzd
 
-from .network_5x80x60 import DQNNetwork
+from .network_5x80x60_pool import DQNNetwork
 from ..agent import Agent
 from ..replay import ReplayBuffer, ReplayDataset
 
@@ -159,3 +159,4 @@ class DQNAgent(LightningModule, Agent):
             action = self.get_action(state, epsilon=0)
             self.env.make_action(action)
         self.val_metrics = self.env.get_metrics(prefix='val_')
+        self.env.new_episode()

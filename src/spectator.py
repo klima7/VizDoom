@@ -3,7 +3,7 @@ import vizdoom as vzd
 
 from setup import setup_game
 
-game = setup_game(log_rewards=False)
+game = setup_game(log_rewards=True)
 game.set_mode(vzd.Mode.SPECTATOR)
 game.init()
 
