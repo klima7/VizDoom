@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from lightning.pytorch import LightningModule
 import vizdoom as vzd
 
-from .network import DQNNetwork
+from .network_5x80x60 import DQNNetwork
 from ..agent import Agent
 from ..replay import ReplayBuffer, ReplayDataset
 

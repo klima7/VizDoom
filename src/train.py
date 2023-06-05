@@ -13,7 +13,7 @@ from setup import setup_game
 
 warnings.filterwarnings("ignore", ".*train_dataloader, does not have many workers.*")
 
-ALGORITHM = 'actor_critic'
+ALGORITHM = 'dqn'
 
 game = setup_game()
 
@@ -29,13 +29,13 @@ if ALGORITHM == 'dqn':
         gamma=0.99,
         epsilon=0.7,
         populate_steps=1_000,
-        buffer_size=10_000,
+        buffer_size=20_000,
         actions_per_step=10,
         frames_skip=3,
         validation_interval=50,
-        weights_update_interval=1_000,
+        weights_update_interval=500,
 
-        epsilon_update_interval=20,
+        epsilon_update_interval=1_000,
         epsilon_min=0.05,
     )
 
@@ -48,14 +48,14 @@ elif ALGORITHM == 'actor_critic':
         n_actions=game.get_available_buttons_size(),
         screen_size=game.get_screen_size(),
         n_variables=game.get_variables_size(),
-        batch_size=1,
+        batch_size=32,
         lr_actor=0.001,
         lr_critic=0.001,
         frames_skip=3,
         gamma=0.99,
-        buffer_size=1,
-        populate_steps=1,
-        actions_per_step=1,
+        buffer_size=32,
+        populate_steps=32,
+        actions_per_step=32,
         validation_interval=500000000000000,
     )
 

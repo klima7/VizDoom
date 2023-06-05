@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from lightning.pytorch import LightningModule
 import vizdoom as vzd
 
-from .networks import Actor, Critic
+from .networks_5x80x60 import Actor, Critic
 from ..agent import Agent
 from ..replay import ReplayBuffer, ReplayDataset
 
