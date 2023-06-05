@@ -97,7 +97,7 @@ def _apply_game_wrappers(game, log_rewards):
             vzd.Button.MOVE_BACKWARD,
         ],
         delta_buttons={
-            vzd.Button.LOOK_UP_DOWN_DELTA: (-1, 1)
+            # vzd.Button.LOOK_UP_DOWN_DELTA: (-1, 1)
         }
     )
     game = StackStateGameWrapper(game, n_frames=5)

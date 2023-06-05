@@ -7,6 +7,7 @@ class ModifyButtonsWrapper:
         self.game = game
         self.__digital_buttons = digital_buttons
         self.__delta_buttons = delta_buttons
+        self.__output_buttons = [*self.__digital_buttons, *self.__delta_buttons.keys()]
 
         self.__inside_buttons = None
         self.__outside_inside_map = None
@@ -20,13 +21,13 @@ class ModifyButtonsWrapper:
         self.__outside_inside_map = self.__create_outside_inside_map()
 
     def get_available_buttons(self):
-        return tuple(button for button in self.game.get_available_buttons() if button in self.__digital_buttons)
+        return tuple(button for button in self.game.get_available_buttons() if button in self.__output_buttons)
 
     def get_available_buttons_size(self):
-        return len(self.__digital_buttons)
+        return len(self.__output_buttons)
 
     def make_action(self, action, *args, **kwargs):
-        assert 0 <= action < len(self.__digital_buttons), 'Illegal action'
+        assert 0 <= action < len(self.__output_buttons), 'Illegal action'
         inside_button = self.__outside_inside_map[action]
         self.game.make_action(inside_button, *args, **kwargs)
 
