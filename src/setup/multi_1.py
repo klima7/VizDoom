@@ -2,7 +2,7 @@ from pathlib import Path
 
 import vizdoom as vzd
 
-from lib.wrappers import AddBotsDoomWrapper, \
+from lib.wrappers import AddBotsDoomWrapper, ModifyButtonsWrapper, \
     RewardsDoomWrapper, Rewards, PreprocessGameWrapper, StackStateGameWrapper
 
     
@@ -80,5 +80,6 @@ def _apply_game_wrappers(game, log_rewards):
         variables=variables,
         depth=False
     )
+    game = ModifyButtonsWrapper(game, available_buttons=[vzd.Button.MOVE_FORWARD, vzd.Button.MOVE_BACKWARD])
     game = StackStateGameWrapper(game, n_frames=5)
     return game

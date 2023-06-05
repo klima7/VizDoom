@@ -73,7 +73,7 @@ def _apply_game_wrappers(game, log_rewards):
         vzd.GameVariable.ARMOR: slice(0, 200),
     }
 
-    game = RewardsDoomWrapper(game, rewards, log=True)
+    game = RewardsDoomWrapper(game, rewards, log=False)
     game = AddBotsDoomWrapper(game, bots_count=6)
     game = SetMonstersDoomWrapper(game, monsters_count=20)
     game = PreprocessGameWrapper(
