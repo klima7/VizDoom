@@ -11,7 +11,7 @@ while True:
     while not game.is_episode_finished():
         state = game.get_state()
 
-        print(state['variables'])
+        # print(state['variables'])
         screen = state['screen']
         for i, channel in enumerate(screen):
             cv2.imshow(f'screen {i}', cv2.resize(channel, (640, 480), interpolation=cv2.INTER_NEAREST))
