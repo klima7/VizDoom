@@ -2,7 +2,7 @@ from pathlib import Path
 
 import vizdoom as vzd
 
-from lib.wrappers import AddBotsDoomWrapper, SetMonstersDoomWrapper, \
+from lib.wrappers import AddBotsDoomWrapper, SetMonstersDoomWrapper, ModifyButtonsWrapper, \
     RewardsDoomWrapper, Rewards, PreprocessGameWrapper, StackStateGameWrapper
 
 
@@ -32,8 +32,8 @@ def _create_base_game(name, window_visible=False):
     game.add_game_args('+sv_samelevel 1 ')
     game.add_game_args('+alwaysapplydmflags 1 ')
 
-    game.set_episode_timeout(6000)
-    game.set_doom_skill(3)
+    game.set_episode_timeout(10_000)
+    game.set_doom_skill(1)
 
     game.set_render_hud(True)
     game.set_render_minimal_hud(False)
@@ -56,32 +56,50 @@ def _apply_game_wrappers(game, log_rewards):
     rewards = Rewards(
         kill_reward=40,
         # single_death_penalty=20,
-        hit_reward=4,
+        hit_reward=1,
         # hit_penalty=1,
-        damage_reward=1,
+        # damage_reward=0,
         # damage_penalty=0.3,
-        ammo_penalty=0.5,
-        health_reward=0.5,
-        armor_reward=0.5,
+        # ammo_penalty=0.5,
+        # health_reward=0.3,
+        # armor_reward=0.3,
+        # ammo_reward=0.3,
+        # ammo_penalty=0.2,
+        suicide_penalty=-10
     )
 
     labels = []
 
     variables = {
         vzd.GameVariable.HEALTH: slice(0, 100),
-        vzd.GameVariable.AMMO4: slice(0, 50),
         vzd.GameVariable.ARMOR: slice(0, 200),
     }
 
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
-    game = AddBotsDoomWrapper(game, bots_count=6)
+    game = AddBotsDoomWrapper(game, bots_count=15, difficulty=1)
     game = SetMonstersDoomWrapper(game, monsters_count=20)
     game = PreprocessGameWrapper(
         game,
-        screen_size=(80, 60),
+        screen_size=(40, 60),
         labels=labels,
         variables=variables,
         depth=False
+    )
+    game = ModifyButtonsWrapper(
+        game,
+        digital_buttons=[
+            None,
+            vzd.Button.TURN_LEFT,
+            vzd.Button.TURN_RIGHT,
+            vzd.Button.ATTACK,
+            vzd.Button.MOVE_LEFT,
+            vzd.Button.MOVE_RIGHT,
+            vzd.Button.MOVE_FORWARD,
+            vzd.Button.MOVE_BACKWARD,
+        ],
+        delta_buttons={
+            # vzd.Button.LOOK_UP_DOWN_DELTA: (-1, 1)
+        }
     )
     game = StackStateGameWrapper(game, n_frames=5)
     return game

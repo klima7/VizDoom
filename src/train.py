@@ -23,7 +23,7 @@ if ALGORITHM == 'dqn':
         screen_size=game.get_screen_size(),
         n_variables=game.get_variables_size(),
 
-        lr=0.00025,
+        lr=0.0005,
         batch_size=32,
 
         gamma=0.99,
@@ -32,10 +32,10 @@ if ALGORITHM == 'dqn':
         buffer_size=400_000,
         actions_per_step=10,
         frames_skip=5,
-        validation_interval=50,
+        validation_interval=500,
         weights_update_interval=500,
 
-        epsilon_update_interval=4_000,
+        epsilon_update_interval=3_000,
         epsilon_min=0.05,
         replay_update_skip=2,
     )
@@ -52,7 +52,7 @@ elif ALGORITHM == 'actor_critic':
         batch_size=32,
         lr_actor=0.001,
         lr_critic=0.001,
-        frames_skip=3,
+        frames_skip=4,
         gamma=0.99,
         buffer_size=32,
         populate_steps=32,
