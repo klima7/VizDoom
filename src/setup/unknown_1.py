@@ -79,7 +79,7 @@ def _apply_game_wrappers(game, log_rewards):
     game = AddBotsDoomWrapper(game, bots_count=10, difficulty=1)
     game = PreprocessGameWrapper(
         game,
-        screen_size=(40, 60),
+        screen_size=(60, 80),
         labels=labels,
         variables=variables,
         depth=False

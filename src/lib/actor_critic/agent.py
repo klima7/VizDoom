@@ -56,8 +56,7 @@ class ActorCriticAgent(LightningModule, Agent):
             action_probs = self.actor.forward_state(state, self.device)
             action_probs = action_probs.detach().cpu().numpy()
             action_idx = np.random.choice(self.hparams.n_actions, p=action_probs)
-            action_vec = self.__get_action_vec(action_idx)
-            return action_vec
+            return action_idx
 
     def configure_optimizers(self):
         optimizer_actor = SGD(self.actor.parameters(), lr=self.hparams.lr_actor)
@@ -176,7 +175,3 @@ class ActorCriticAgent(LightningModule, Agent):
             self.env.make_action(action)
         self.val_metrics = self.env.get_metrics(prefix='val_')
 
-    def __get_action_vec(self, action_idx):
-        action_vector = [0] * self.hparams.n_actions
-        action_vector[action_idx] = 1
-        return action_vector
