@@ -23,19 +23,19 @@ if ALGORITHM == 'dqn':
         screen_size=game.get_screen_size(),
         n_variables=game.get_variables_size(),
 
-        lr=0.0005,
-        batch_size=32,
+        lr=0.00025,
+        batch_size=64,
 
         gamma=0.99,
         epsilon=0.7,
         populate_steps=200_000,
         buffer_size=400_000,
         actions_per_step=10,
-        frames_skip=5,
+        frames_skip=3,
         validation_interval=500,
-        weights_update_interval=500,
+        weights_update_interval=2_000,
 
-        epsilon_update_interval=3_000,
+        epsilon_update_interval=3_500,
         epsilon_min=0.05,
         replay_update_skip=2,
     )
@@ -79,7 +79,7 @@ advanced_profiler = AdvancedProfiler(
 checkpoint_checkpoint = ModelCheckpoint(
     save_last=True,
     save_top_k=-1,
-    every_n_epochs=50,
+    every_n_epochs=100,
 )
 
 trainer = Trainer(

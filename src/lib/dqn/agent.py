@@ -92,8 +92,8 @@ class DQNAgent(LightningModule, Agent):
             self.__validate()
 
     def on_train_batch_start(self, batch, batch_idx):
-        should_update_replay = self.global_step % self.hparams.replay_update_skip == 0
-        for _ in range(self.hparams.actions_per_step):
+        for i in range(self.hparams.actions_per_step):
+            should_update_replay = (self.global_step+i) % self.hparams.replay_update_skip == 0
             done = self.__play_step(should_update_replay)
             if done:
                 self.train_metrics = self.env.get_metrics(prefix='train_')
