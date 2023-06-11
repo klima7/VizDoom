@@ -57,7 +57,8 @@ class DQNAgent(LightningModule, Agent):
         self.dataset = ReplayDataset(self.buffer, self.env)
 
     def get_action(self, state, epsilon=None):
-        if random.random() < (epsilon or self.hparams.epsilon):
+        epsilon = epsilon if epsilon is not None else self.hparams.epsilon
+        if random.random() < epsilon:
             return self.__get_random_action()
         else:
             return self.__get_best_action(state)

@@ -12,7 +12,7 @@ for _ in range(20):
     game.new_episode()
     while not game.is_episode_finished():
         state = game.get_state()
-        best_action_index = agent.get_action(state)
+        best_action_index = agent.get_action(state, epsilon=0)
 
         game.make_action(best_action_index, skip=3)
 
