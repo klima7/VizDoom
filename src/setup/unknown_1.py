@@ -32,7 +32,7 @@ def _create_base_game(name, window_visible=False):
     game.add_game_args('+sv_samelevel 1 ')
     game.add_game_args('+alwaysapplydmflags 1 ')
 
-    game.set_episode_timeout(6000)
+    game.set_episode_timeout(10000)
     game.set_doom_skill(3)
 
     game.set_render_hud(False)
@@ -63,8 +63,8 @@ def _apply_game_wrappers(game, log_rewards):
         damage_reward=1,
         # damage_penalty=0.3,
         ammo_penalty=0.3,
-        health_reward=0.5,
-        armor_reward=0.5,
+        # health_reward=0.5,
+        # armor_reward=0.5,
     )
 
     labels = []
@@ -76,7 +76,7 @@ def _apply_game_wrappers(game, log_rewards):
     }
 
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
-    game = AddBotsDoomWrapper(game, bots_count=10, difficulty=1)
+    game = AddBotsDoomWrapper(game, bots_count=15, difficulty=1)
     game = PreprocessGameWrapper(
         game,
         screen_size=(40, 60),
@@ -87,7 +87,6 @@ def _apply_game_wrappers(game, log_rewards):
     game = ModifyButtonsWrapper(
         game,
         digital_buttons=[
-            None,
             vzd.Button.TURN_LEFT,
             vzd.Button.TURN_RIGHT,
             vzd.Button.ATTACK,

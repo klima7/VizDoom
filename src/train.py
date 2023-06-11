@@ -27,15 +27,15 @@ if ALGORITHM == 'dqn':
         batch_size=64,
 
         gamma=0.99,
-        epsilon=0.7,
-        populate_steps=500_000,
-        buffer_size=500_000,
+        epsilon=0.6,
+        populate_steps=300_000,
+        buffer_size=300_000,
         actions_per_step=10,
         frames_skip=3,
         validation_interval=500,
-        weights_update_interval=2_000 * 3,
+        weights_update_interval=1_000,
 
-        epsilon_update_interval=3_500,
+        epsilon_update_interval=3_000,
         epsilon_min=0.05,
         replay_update_skip=1,
     )
@@ -79,7 +79,7 @@ advanced_profiler = AdvancedProfiler(
 checkpoint_checkpoint = ModelCheckpoint(
     save_last=True,
     save_top_k=-1,
-    every_n_epochs=100,
+    every_n_epochs=20,
 )
 
 trainer = Trainer(
