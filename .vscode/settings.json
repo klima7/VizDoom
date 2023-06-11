@@ -1,6 +1,0 @@
-{
-    "files.exclude": {
-        "**/_vizdoom": true,
-        "**/_vizdoom.ini": true
-    }
-}
