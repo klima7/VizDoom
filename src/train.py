@@ -28,16 +28,16 @@ if ALGORITHM == 'dqn':
 
         gamma=0.99,
         epsilon=0.6,
-        populate_steps=300_000,
-        buffer_size=300_000,
+        populate_steps=200_000,
+        buffer_size=200_000,
         actions_per_step=10,
         frames_skip=3,
-        validation_interval=500,
+        validation_interval=50,
         weights_update_interval=1_000,
 
         epsilon_update_interval=3_000,
         epsilon_min=0.05,
-        replay_update_skip=1,
+        replay_update_skip=2,
     )
 
     # agent = DQNAgent.load_from_checkpoint(

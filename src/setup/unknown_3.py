@@ -88,7 +88,6 @@ def _apply_game_wrappers(game, log_rewards):
     game = ModifyButtonsWrapper(
         game,
         digital_buttons=[
-            None,
             vzd.Button.TURN_LEFT,
             vzd.Button.TURN_RIGHT,
             vzd.Button.ATTACK,
