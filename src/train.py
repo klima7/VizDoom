@@ -24,7 +24,7 @@ if ALGORITHM == 'dqn':
         n_variables=game.get_variables_size(),
 
         lr=0.00025,
-        batch_size=64,
+        batch_size=128,
 
         gamma=0.99,
         epsilon=0.6,
@@ -35,9 +35,9 @@ if ALGORITHM == 'dqn':
         validation_interval=50,
         weights_update_interval=1_000,
 
-        epsilon_update_interval=3_000,
+        epsilon_update_interval=2_00,
         epsilon_min=0.05,
-        replay_update_skip=2,
+        replay_update_skip=3,
     )
 
     # agent = DQNAgent.load_from_checkpoint(
