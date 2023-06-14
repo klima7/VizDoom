@@ -24,7 +24,7 @@ if ALGORITHM == 'dqn':
         n_variables=game.get_variables_size(),
 
         lr=0.00025,
-        batch_size=128,
+        batch_size=64,
 
         gamma=0.99,
         epsilon=0.6,
@@ -33,7 +33,7 @@ if ALGORITHM == 'dqn':
         actions_per_step=10,
         frames_skip=3,
         validation_interval=50,
-        weights_update_interval=1_000,
+        weights_update_interval=2_000,
 
         epsilon_update_interval=2_00,
         epsilon_min=0.05,
