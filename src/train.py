@@ -18,31 +18,32 @@ ALGORITHM = 'dqn'
 game = setup_game()
 
 if ALGORITHM == 'dqn':
-    agent = DQNAgent(
-        n_actions=game.get_available_buttons_size(),
-        screen_size=game.get_screen_size(),
-        n_variables=game.get_variables_size(),
-
-        lr=0.00025,
-        batch_size=64,
-
-        gamma=0.99,
-        epsilon=0.6,
-        populate_steps=200_000,
-        buffer_size=200_000,
-        actions_per_step=10,
-        frames_skip=3,
-        validation_interval=50,
-        weights_update_interval=2_000,
-
-        epsilon_update_interval=2_00,
-        epsilon_min=0.05,
-        replay_update_skip=3,
-    )
-
-    # agent = DQNAgent.load_from_checkpoint(
-    #     '../logs/version_42/checkpoints/last.ckpt',
+    # agent = DQNAgent(
+    #     n_actions=game.get_available_buttons_size(),
+    #     screen_size=game.get_screen_size(),
+    #     n_variables=game.get_variables_size(),
+    #
+    #     lr=0.00025,
+    #     batch_size=64,
+    #
+    #     gamma=0.99,
+    #     epsilon=0.6,
+    #     populate_steps=200_000,
+    #     buffer_size=200_000,
+    #     actions_per_step=10,
+    #     frames_skip=3,
+    #     validation_interval=50,
+    #     weights_update_interval=2_000,
+    #
+    #     epsilon_update_interval=2_00,
+    #     epsilon_min=0.05,
+    #     replay_update_skip=3,
     # )
+
+    agent = DQNAgent.load_from_checkpoint(
+        '../logs/version_329/checkpoints/last.ckpt',
+        epsilon=0.3
+    )
 
 elif ALGORITHM == 'actor_critic':
     agent = ActorCriticAgent(
