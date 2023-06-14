@@ -2,8 +2,7 @@ from pathlib import Path
 
 import vizdoom as vzd
 
-from lib.wrappers import AddBotsDoomWrapper, SetMonstersDoomWrapper, ModifyButtonsWrapper, \
-    RewardsDoomWrapper, Rewards, PreprocessGameWrapper, StackStateGameWrapper
+from lib.wrappers import ModifyButtonsWrapper, PreprocessGameWrapper, StackStateGameWrapper
 
 
 def setup_game(name='AI', log_rewards=False, window_visible=True):
@@ -18,23 +17,8 @@ def _create_base_game(name, window_visible=False):
     game.load_config(str(Path(__file__).parent.parent.parent / 'scenarios' / 'cig_with_unknown' / 'cig_with_unknown.cfg'))
     game.set_doom_map("map03")
     game.set_mode(vzd.Mode.PLAYER)
-    game.add_game_args('-deathmatch ')
-    game.add_game_args('+viz_bots_path ../bots/stupid.cfg ')
-    game.add_game_args('+sv_forcerespawn 1 ')
-    game.add_game_args('+sv_noautoaim 1 ')
-    game.add_game_args('+sv_respawnprotect 1 ')
-    game.add_game_args('+sv_spawnfarthest 1 ')
-    game.add_game_args('+sv_nocrouch 1 ')
-    game.add_game_args('+viz_nocheat 1 ')
-    game.add_game_args('+sv_respawnprotect 1 ')
-    game.add_game_args('+viz_respawn_delay 10 ')
-    game.add_game_args('+sv_noexit 1 ')
-    game.add_game_args('+sv_samelevel 1 ')
-    game.add_game_args('+alwaysapplydmflags 1 ')
 
-    game.set_episode_timeout(10_000)
-    game.set_doom_skill(1)
-
+    # rendering
     game.set_render_hud(True)
     game.set_render_minimal_hud(False)
     game.set_render_particles(False)
@@ -44,6 +28,7 @@ def _create_base_game(name, window_visible=False):
     game.set_render_screen_flashes(False)
     game.set_render_weapon(True)
 
+    # display
     game.add_game_args(f'+name {name}')
     game.set_window_visible(window_visible)
     game.set_screen_resolution(vzd.ScreenResolution.RES_640X480)
@@ -53,37 +38,15 @@ def _create_base_game(name, window_visible=False):
 
 
 def _apply_game_wrappers(game, log_rewards):
-    rewards = Rewards(
-        # kill_reward=40,
-        # single_death_penalty=20,
-        hit_reward=4,
-        damage_reward=4,
-        ammo_penalty=0.5,
-        # hit_penalty=1,
-        # damage_reward=0,
-        # damage_penalty=0.3,
-        # ammo_penalty=0.5,
-        # health_reward=0.3,
-        # armor_reward=0.3,
-        # ammo_reward=0.3,
-        # ammo_penalty=0.2,
-        suicide_penalty=-10
-    )
-
-    labels = []
-
     variables = {
         vzd.GameVariable.HEALTH: slice(0, 100),
         vzd.GameVariable.ARMOR: slice(0, 200),
     }
 
-    game = RewardsDoomWrapper(game, rewards, log=log_rewards)
-    game = AddBotsDoomWrapper(game, bots_count=80, difficulty=1)
-    game = SetMonstersDoomWrapper(game, monsters_count=5)
     game = PreprocessGameWrapper(
         game,
         screen_size=(40, 60),
-        labels=labels,
+        labels=[],
         variables=variables,
         depth=False
     )
