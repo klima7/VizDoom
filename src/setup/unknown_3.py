@@ -76,8 +76,8 @@ def _apply_game_wrappers(game, log_rewards):
     }
 
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
-    game = AddBotsDoomWrapper(game, bots_count=15, difficulty=1)
-    game = SetMonstersDoomWrapper(game, monsters_count=20)
+    game = AddBotsDoomWrapper(game, bots_count=40, difficulty=1)
+    game = SetMonstersDoomWrapper(game, monsters_count=15)
     game = PreprocessGameWrapper(
         game,
         screen_size=(40, 60),
