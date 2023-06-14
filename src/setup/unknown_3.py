@@ -54,9 +54,11 @@ def _create_base_game(name, window_visible=False):
 
 def _apply_game_wrappers(game, log_rewards):
     rewards = Rewards(
-        kill_reward=40,
+        # kill_reward=40,
         # single_death_penalty=20,
-        hit_reward=1,
+        hit_reward=4,
+        damage_reward=4,
+        ammo_penalty=0.5,
         # hit_penalty=1,
         # damage_reward=0,
         # damage_penalty=0.3,
@@ -76,8 +78,8 @@ def _apply_game_wrappers(game, log_rewards):
     }
 
     game = RewardsDoomWrapper(game, rewards, log=log_rewards)
-    game = AddBotsDoomWrapper(game, bots_count=40, difficulty=1)
-    game = SetMonstersDoomWrapper(game, monsters_count=15)
+    game = AddBotsDoomWrapper(game, bots_count=80, difficulty=1)
+    game = SetMonstersDoomWrapper(game, monsters_count=5)
     game = PreprocessGameWrapper(
         game,
         screen_size=(40, 60),
